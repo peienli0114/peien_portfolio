@@ -1,0 +1,16 @@
+{
+  "default": {
+    "cv": "cv-ch1018.pdf",
+    "categories": {
+      "作品集": []
+    }
+  },
+  "forxxcompany": {
+    "cv": "cv-ch1018.pdf",
+    "categories": {
+      "研究與分析": ["mc1", "mc2", "mit1"],
+      "互動體驗": ["mh1", "mh2"],
+      "未來概念": ["ai1"]
+    }
+  }
+}
