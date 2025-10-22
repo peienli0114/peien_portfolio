@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/peien_portfolio/static/css/main.ee9144d3.css",
+    "main.js": "/peien_portfolio/static/js/main.986617ea.js",
+    "static/js/453.117b0875.chunk.js": "/peien_portfolio/static/js/453.117b0875.chunk.js",
+    "static/media/cv-ch1018.pdf": "/peien_portfolio/static/media/cv-ch1018.aa94af1f69bbe5743e42.pdf",
+    "index.html": "/peien_portfolio/index.html",
+    "main.ee9144d3.css.map": "/peien_portfolio/static/css/main.ee9144d3.css.map",
+    "main.986617ea.js.map": "/peien_portfolio/static/js/main.986617ea.js.map",
+    "453.117b0875.chunk.js.map": "/peien_portfolio/static/js/453.117b0875.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ee9144d3.css",
+    "static/js/main.986617ea.js"
+  ]
+}
