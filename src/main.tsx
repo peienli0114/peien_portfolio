@@ -17,6 +17,9 @@ type PortfolioCategory = {
   name: string;
   items: PortfolioItem[];
 };
+type PortfolioCategoryWithMatrix = PortfolioCategory & {
+  itemsMap: Record<string, PortfolioItem>;
+};
 type PortfolioRouteEntry = {
   cv?: string;
   categories?: Record<string, PortfolioCode[]>;
@@ -32,6 +35,7 @@ type WorkDetail = {
   intro?: string;
   introList?: string[];
   headPic?: string;
+  tags?: string[];
 };
 
 const getPortfolioName = (code: string): string | undefined =>
@@ -44,6 +48,34 @@ const CV_ASSETS: Record<string, string> = {
 };
 const DEFAULT_ROUTE_ENTRY: PortfolioRouteEntry = ROUTE_CONFIG.default ?? {};
 const workDetailMap = workDetails as Record<string, WorkDetail>;
+type WorkImages = {
+  main: string | null;
+  gallery: string[];
+};
+
+const WORK_IMAGE_MAP: Record<string, WorkImages> = (() => {
+  const map: Record<string, WorkImages> = {};
+  const context = require.context('./asset/work', true, /\.(png|jpe?g|gif|svg)$/);
+  context.keys().forEach((key) => {
+    const src = context(key) as string;
+    const normalized = key.replace('./', '');
+    const [folder, file] = normalized.split('/');
+    if (!folder || !file) {
+      return;
+    }
+    const code = folder.toLowerCase();
+    if (!map[code]) {
+      map[code] = { main: null, gallery: [] };
+    }
+    const lowerFile = file.toLowerCase();
+    if (lowerFile === 'mainpic.png' || lowerFile.startsWith('main.')) {
+      map[code].main = src;
+    } else {
+      map[code].gallery.push(src);
+    }
+  });
+  return map;
+})();
 
 const resolvePreviewUrl = (path?: string): string | null => {
   const trimmed = (path || '').trim();
@@ -66,13 +98,8 @@ const Main: React.FC = () => {
   );
   const [expandedWorks, setExpandedWorks] = useState<PortfolioCode[]>([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [collapsedNav, setCollapsedNav] = useState({
-    home: false,
-    cv: false,
-    portfolio: false,
-  });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const routeKey = useMemo(() => {
     if (typeof window === 'undefined') {
@@ -153,18 +180,10 @@ const Main: React.FC = () => {
     }
   };
 
-  const toggleSectionCollapse = (key: keyof typeof collapsedNav) => {
-    setCollapsedNav((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
   const toggleCategoryCollapse = (categoryName: string) => {
-    setCollapsedCategories((prev) => ({
-      ...prev,
-      [categoryName]: !prev[categoryName],
-    }));
+    setExpandedCategory((current) =>
+      current === categoryName ? null : categoryName,
+    );
   };
 
   const defaultCodes = useMemo(
@@ -205,6 +224,11 @@ const Main: React.FC = () => {
           }
           const detail = workDetailMap[resolved] ?? {
             tableName: name,
+            fullName: name,
+            intro: '',
+            introList: [],
+            headPic: '',
+            tags: [],
           };
           globalSeen.add(resolved);
           items.push({
@@ -250,6 +274,11 @@ const Main: React.FC = () => {
               ...item,
               detail: workDetailMap[item.code] ?? {
                 tableName: item.name,
+                fullName: item.name,
+                intro: '',
+                introList: [],
+                headPic: '',
+                tags: [],
               },
             })) }]
         : [];
@@ -258,9 +287,24 @@ const Main: React.FC = () => {
     return resolvedCategories;
   }, [defaultCodes, routeKey]);
 
+  const categoriesWithMatrix = useMemo<PortfolioCategoryWithMatrix[]>(
+    () =>
+      categories.map((category) => ({
+        ...category,
+        itemsMap: category.items.reduce<Record<string, PortfolioItem>>(
+          (acc, item) => {
+            acc[item.code] = item;
+            return acc;
+          },
+          {},
+        ),
+      })),
+    [categories],
+  );
+
   const portfolioItems = useMemo(() => {
     const seen = new Set<string>();
-    return categories
+    return categoriesWithMatrix
       .flatMap((category) => category.items)
       .filter((item) => {
         if (seen.has(item.code)) {
@@ -269,17 +313,12 @@ const Main: React.FC = () => {
         seen.add(item.code);
         return true;
       });
-  }, [categories]);
+  }, [categoriesWithMatrix]);
 
   useEffect(() => {
-    setCollapsedCategories({});
-    setCollapsedNav({
-      home: false,
-      cv: false,
-      portfolio: false,
-    });
+    setExpandedCategory(null);
     setIsSidebarCollapsed(false);
-  }, [routeKey]);
+  }, [routeKey, categoriesWithMatrix]);
 
   const cvAsset = useMemo(() => {
     const defaultKey = DEFAULT_ROUTE_ENTRY.cv ?? DEFAULT_CV_KEY;
@@ -366,6 +405,10 @@ const Main: React.FC = () => {
         positions[positions.length - 1];
 
       if (target) {
+        const sectionCategory = categoriesWithMatrix.find((category) =>
+          Boolean(category.itemsMap[target.code]),
+        );
+        setExpandedCategory(sectionCategory?.name ?? null);
         setActivePortfolio((current) =>
           current === target.code ? current : target.code,
         );
@@ -398,6 +441,7 @@ const Main: React.FC = () => {
       window.removeEventListener('resize', handleResize);
     };
   }, [
+    categoriesWithMatrix,
     getScrollOffset,
     isMobileNavOpen,
     portfolioItems,
@@ -449,98 +493,80 @@ const Main: React.FC = () => {
       <li className="sidebar-section">
         <button
           type="button"
-          onClick={() => {
-            toggleSectionCollapse('home');
-            handleSelectContent('home');
-          }}
+          onClick={() => handleSelectContent('home')}
           className={`sidebar-button${
             selectedContent === 'home' ? ' is-active' : ''
           }`}
-          aria-expanded={!collapsedNav.home}
         >
           home
-          <span className="sidebar-caret" aria-hidden>{
-            collapsedNav.home ? '▸' : '▾'
-          }</span>
         </button>
       </li>
       <li className="sidebar-section">
         <button
           type="button"
-          onClick={() => {
-            toggleSectionCollapse('cv');
-            handleSelectContent('cv');
-          }}
+          onClick={() => handleSelectContent('cv')}
           className={`sidebar-button${
             selectedContent === 'cv' ? ' is-active' : ''
           }`}
-          aria-expanded={!collapsedNav.cv}
         >
           cv
-          <span className="sidebar-caret" aria-hidden>{
-            collapsedNav.cv ? '▸' : '▾'
-          }</span>
         </button>
       </li>
       <li className="sidebar-section sidebar-portfolio">
         <button
           type="button"
-          onClick={() => {
-            toggleSectionCollapse('portfolio');
-            handlePortfolioNavClick();
-          }}
+          onClick={() => handlePortfolioNavClick()}
           className={`sidebar-button${
             selectedContent === 'portfolio' ? ' is-active' : ''
           }`}
-          aria-expanded={!collapsedNav.portfolio}
         >
           作品集
-          <span className="sidebar-caret" aria-hidden>{
-            collapsedNav.portfolio ? '▸' : '▾'
-          }</span>
         </button>
-        {!collapsedNav.portfolio && (
-          <div className="sidebar-category-collection">
-            {categories.map((category) => {
-              const isCollapsed = collapsedCategories[category.name] ?? false;
-              return (
-                <div className="sidebar-category-group" key={category.name}>
-                  <button
-                    type="button"
-                    className="sidebar-category-title"
-                    onClick={() => toggleCategoryCollapse(category.name)}
-                    aria-expanded={!isCollapsed}
-                  >
-                    {category.name}
-                    <span className="sidebar-caret" aria-hidden>{
-                      isCollapsed ? '▸' : '▾'
-                    }</span>
-                  </button>
-                  {!isCollapsed && (
-                    <ul>
-                      {category.items.map((item) => (
-                        <li key={item.code}>
-                          <button
-                            type="button"
-                            onClick={() => handlePortfolioNavClick(item.code)}
-                            className={`sidebar-button${
-                              selectedContent === 'portfolio' &&
-                              activePortfolio === item.code
-                                ? ' is-active'
-                                : ''
-                            }`}
-                          >
-                            {item.name}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <div className="sidebar-category-collection">
+          {categories.map((category) => {
+            const isOpen = expandedCategory === category.name;
+            const containsActive = category.items.some(
+              (item) => item.code === activePortfolio,
+            );
+            return (
+              <div className="sidebar-category-group" key={category.name}>
+                <button
+                  type="button"
+                  className={`sidebar-category-title${
+                    isOpen ? ' is-open' : ''
+                  }${containsActive ? ' is-active' : ''}`}
+                  onClick={() => toggleCategoryCollapse(category.name)}
+                  aria-expanded={isOpen}
+                >
+                  {category.name}
+                  <span className="sidebar-caret" aria-hidden>{
+                    isOpen ? '▾' : '▸'
+                  }</span>
+                </button>
+                {isOpen && (
+                  <ul>
+                    {category.items.map((item) => (
+                      <li key={item.code}>
+                        <button
+                          type="button"
+                          onClick={() => handlePortfolioNavClick(item.code)}
+                          className={`sidebar-button${
+                            selectedContent === 'portfolio' &&
+                            activePortfolio === item.code
+                              ? ' is-active'
+                              : ''
+                          }`}
+                        >
+                          {item.detail.tableName || item.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </li>
     </ul>
   );
@@ -571,72 +597,135 @@ const Main: React.FC = () => {
 
       return (
         <div className="portfolio-container">
-          {portfolioItems.map((item) => {
-            const isExpanded = expandedWorks.includes(item.code);
-            const detail = item.detail;
-            const previewUrl = resolvePreviewUrl(detail.headPic);
-            const introText = detail.intro?.trim() || '這個作品的介紹尚未補充，歡迎之後回來看看。';
-            const yearRange = [detail.yearBegin, detail.yearEnd]
-              .filter(Boolean)
-              .join(' – ');
-
-            return (
-              <section
-                key={item.code}
-                id={`portfolio-${item.code}`}
-                data-code={item.code}
-                className={`portfolio-section${
-                  activePortfolio === item.code ? ' is-active' : ''
-                }`}
-              >
-                <header
-                  className={`portfolio-header${
-                    isExpanded ? ' is-pinned' : ''
-                  }`}
-                >
-                  <div className="portfolio-heading">
-                    <h2>{item.name}</h2>
-                    <span className="portfolio-category-tag">
-                      {item.category}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className="portfolio-toggle"
-                    onClick={() => toggleWork(item.code)}
-                  >
-                    {isExpanded ? '收合內容' : '展開詳情'}
-                  </button>
-                </header>
-                <div className="portfolio-summary-block">
-                  <div className="portfolio-summary-text">
-                    {introText}
-                  </div>
-                  <div className="portfolio-preview">
-                    {previewUrl ? (
-                      <img src={previewUrl} alt={`${item.name} 主要展示圖`} />
-                    ) : (
-                      <span className="portfolio-preview-placeholder">主要視覺尚未提供</span>
-                    )}
-                  </div>
+          {categoriesWithMatrix.map((category) => (
+            <React.Fragment key={category.name}>
+              {category.items.length > 0 && (
+                <div className="portfolio-category-divider" data-category={category.name}>
+                  <span>{category.name}</span>
                 </div>
-                {isExpanded && (
-                  <div className="portfolio-details">
-                    {yearRange && (
-                      <p className="portfolio-meta">{yearRange}</p>
-                    )}
-                    {detail.introList && detail.introList.length > 0 && (
-                      <ul className="portfolio-detail-list">
-                        {detail.introList.map((entry, index) => (
-                          <li key={index}>{entry}</li>
+              )}
+              {category.items.map((item) => {
+                const isExpanded = expandedWorks.includes(item.code);
+                const detail = item.detail;
+                const imageResources = WORK_IMAGE_MAP[item.code.toLowerCase()] || {
+                  main: null,
+                  gallery: [],
+                };
+                const previewUrl = detail.headPic
+                  ? resolvePreviewUrl(detail.headPic)
+                  : imageResources.main;
+                const introText =
+                  detail.intro?.trim() || '這個作品的介紹尚未補充，歡迎之後回來看看。';
+                const introParagraphs = introText
+                  .split(/\n\s*\n/)
+                  .map((segment) => segment.replace(/\s+/g, ' ').trim())
+                  .filter(Boolean);
+                const yearRange = [detail.yearBegin, detail.yearEnd]
+                  .filter(Boolean)
+                  .join(' – ');
+                const fullDisplayName =
+                  detail.fullName || detail.tableName || item.name;
+                const tags = detail.tags ?? [];
+                const galleryImages = previewUrl
+                  ? imageResources.gallery.filter((src) => src !== previewUrl)
+                  : imageResources.gallery;
+
+                return (
+                  <section
+                    key={item.code}
+                    id={`portfolio-${item.code}`}
+                    data-code={item.code}
+                    className={`portfolio-section${
+                      activePortfolio === item.code ? ' is-active' : ''
+                    }`}
+                  >
+                    <div className="portfolio-summary-block">
+                      <div className="portfolio-preview">
+                        {previewUrl ? (
+                          <img src={previewUrl} alt={`${fullDisplayName} 主視覺`} />
+                        ) : (
+                          <span className="portfolio-preview-placeholder">主要視覺尚未提供</span>
+                        )}
+                      </div>
+                      <div className="portfolio-summary-text">
+                        <div className="portfolio-heading portfolio-heading-inline">
+                          <h2>{fullDisplayName}</h2>
+                        </div>
+                        {tags.length > 0 && (
+                          <div className="portfolio-tags">
+                            {tags.map((tag, index) => (
+                              <span className="portfolio-tag" key={index}>
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {introParagraphs.map((paragraph, index) => (
+                          <p key={index}>{paragraph}</p>
                         ))}
-                      </ul>
+                        {!isExpanded && (
+                          <button
+                            type="button"
+                            className="portfolio-toggle preview-toggle"
+                            onClick={() => toggleWork(item.code)}
+                          >
+                            閱讀更多
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div className="portfolio-details">
+                        <div className="portfolio-detail-banner">
+                          <span>{fullDisplayName}</span>
+                          <div className="portfolio-detail-actions">
+                            <button
+                              type="button"
+                              className="portfolio-detail-close"
+                              onClick={() => {
+                                const section = document.getElementById(`portfolio-${item.code}`);
+                                section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }}
+                            >
+                              回到頂部
+                            </button>
+                            <button
+                              type="button"
+                              className="portfolio-detail-close"
+                              onClick={() => toggleWork(item.code)}
+                            >
+                              關閉 ×
+                            </button>
+                          </div>
+                        </div>
+                        {yearRange && (
+                          <p className="portfolio-meta">{yearRange}</p>
+                        )}
+                        {detail.introList && detail.introList.length > 0 && (
+                          <ul className="portfolio-detail-list">
+                            {detail.introList.map((entry, index) => (
+                              <li key={index}>{entry}</li>
+                            ))}
+                          </ul>
+                        )}
+                        {galleryImages.length > 0 && (
+                          <div className="portfolio-gallery">
+                            {galleryImages.map((src, index) => (
+                              <img
+                                key={index}
+                                src={src}
+                                alt={`${fullDisplayName} 作品圖 ${index + 1}`}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     )}
-                  </div>
-                )}
-              </section>
-            );
-          })}
+                  </section>
+                );
+              })}
+            </React.Fragment>
+          ))}
         </div>
       );
     }
@@ -655,18 +744,21 @@ const Main: React.FC = () => {
 
   return (
     <div className={`layout${isSidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
-      <button
-        type="button"
-        className="sidebar-collapse-toggle desktop-only"
-        onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-        aria-expanded={!isSidebarCollapsed}
-      >
-        {isSidebarCollapsed ? '展開側欄' : '收合側欄'}
-      </button>
+      {isSidebarCollapsed && (
+        <button
+          type="button"
+          className="sidebar-collapse-toggle desktop-only"
+          onClick={() => setIsSidebarCollapsed(false)}
+          aria-expanded={!isSidebarCollapsed}
+        >
+          展開
+目錄
+        </button>
+      )}
       <header className={`mobile-nav${isMobileNavOpen ? ' is-open' : ''}`}>
         <div className="mobile-nav-inner">
-          <div className="sidebar-header">
-            <h1 className="sidebar-title">作品集底下</h1>
+          <div className="mobile-nav-bar">
+            <h1 className="sidebar-title">PEI EN LI</h1>
             <button
               type="button"
               className="sidebar-toggle"
@@ -686,6 +778,14 @@ const Main: React.FC = () => {
         <div className="sidebar">
           <div className="sidebar-header desktop-only">
             <h1 className="sidebar-title">PEI-EN</h1>
+            <button
+              type="button"
+              className="sidebar-collapse-control"
+              onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+              aria-expanded={!isSidebarCollapsed}
+            >
+              {isSidebarCollapsed ? '展開目錄' : '收合目錄'}
+            </button>
           </div>
           <nav className="nav-menu">{renderNavItems()}</nav>
         </div>

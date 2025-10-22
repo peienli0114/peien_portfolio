@@ -60,25 +60,37 @@ def generate_work_details(
         print(f"No work list found at {csv_path}, skipping detail export.")
         return
 
-    name_lookup = {
-        normalise_text(name): code for code, name in mapping.items() if name
-    }
-
     details: Dict[str, Dict[str, object]] = {}
     unmatched: List[str] = []
 
     with csv_path.open("r", encoding="utf-8-sig") as fh:
         reader = csv.DictReader(fh)
         for row in reader:
-            raw_table_name = row.get("tableName", "")
-            lookup_key = normalise_text(raw_table_name) or normalise_text(row.get("fullName", ""))
-            if not lookup_key:
+            raw_code = (row.get("index") or "").strip().lower()
+            if raw_code in mapping:
+                code = raw_code
+            else:
+                raw_table_name = row.get("tableName", "")
+                lookup_key = normalise_text(raw_table_name) or normalise_text(
+                    row.get("fullName", "")
+                )
+                if not lookup_key:
+                    continue
+
+                code = next(
+                    (candidate for candidate, name in mapping.items()
+                     if normalise_text(name) == lookup_key),
+                    None,
+                )
+
+            if not code or code not in mapping:
+                raw_table_name = row.get("tableName", "")
+                unmatched.append(raw_table_name.strip() or raw_code)
                 continue
 
-            code = name_lookup.get(lookup_key)
-            if not code:
-                unmatched.append(raw_table_name.strip() or lookup_key)
-                continue
+            def normalize_multiline(value: str | None) -> str:
+                text = (value or "").replace("\\n", "\n").strip()
+                return text
 
             details[code] = {
                 "fullName": (row.get("fullName") or "").replace("\n", " ").strip(),
@@ -86,9 +98,10 @@ def generate_work_details(
                 "tableName": (row.get("tableName") or "").replace("\n", " ").strip(),
                 "yearBegin": (row.get("yearBegin") or "").strip(),
                 "yearEnd": (row.get("yearEnd") or "").strip(),
-                "intro": (row.get("introd") or "").strip(),
+                "intro": normalize_multiline(row.get("introd")),
                 "introList": parse_list_field(row.get("introd_list")),
                 "headPic": (row.get("headPic") or "").strip(),
+                "tags": parse_list_field(row.get("tag")),
             }
 
     output_path.write_text(
