@@ -1,16 +1,29 @@
 {
   "files": {
-    "main.css": "/peien_portfolio/static/css/main.ee9144d3.css",
-    "main.js": "/peien_portfolio/static/js/main.f37fddca.js",
+    "main.css": "/peien_portfolio/static/css/main.f7099e03.css",
+    "main.js": "/peien_portfolio/static/js/main.c2e19572.js",
     "static/js/453.117b0875.chunk.js": "/peien_portfolio/static/js/453.117b0875.chunk.js",
+    "static/media/2.jpg": "/peien_portfolio/static/media/2.95c3c8f689be23e87d81.jpg",
     "static/media/cv-ch1018.pdf": "/peien_portfolio/static/media/cv-ch1018.48adebf5157b79da6529.pdf",
+    "static/media/4.jpg": "/peien_portfolio/static/media/4.6565ab8af12df9a6a8dd.jpg",
+    "static/media/5.jpg": "/peien_portfolio/static/media/5.dc4104a6f9e9035121ab.jpg",
+    "static/media/6.jpg": "/peien_portfolio/static/media/6.db63cb453597f2d19946.jpg",
+    "static/media/1.jpg": "/peien_portfolio/static/media/1.5d100e68f6daf7b9599b.jpg",
+    "static/media/3.jpg": "/peien_portfolio/static/media/3.8a84be36e1b67432e724.jpg",
+    "static/media/7.jpg": "/peien_portfolio/static/media/7.c5184c32b5195644ce90.jpg",
+    "static/media/作品集public_頁面_21.jpg": "/peien_portfolio/static/media/作品集public_頁面_21.bd443e0c6c2fab7e35bb.jpg",
+    "static/media/作品集public_頁面_22.jpg": "/peien_portfolio/static/media/作品集public_頁面_22.0f7f29eeb81843d08fce.jpg",
+    "static/media/headPic.jpg": "/peien_portfolio/static/media/headPic.a6c0f5c47e6c33022811.jpg",
+    "static/media/作品集public_頁面_23.jpg": "/peien_portfolio/static/media/作品集public_頁面_23.8d72c21cf8393b013d2a.jpg",
+    "static/media/作品集public_頁面_24.jpg": "/peien_portfolio/static/media/作品集public_頁面_24.eaefb41e023edbe26cc9.jpg",
+    "static/media/作品集public_頁面_20.jpg": "/peien_portfolio/static/media/作品集public_頁面_20.0d59875ae7856354ac75.jpg",
     "index.html": "/peien_portfolio/index.html",
-    "main.ee9144d3.css.map": "/peien_portfolio/static/css/main.ee9144d3.css.map",
-    "main.f37fddca.js.map": "/peien_portfolio/static/js/main.f37fddca.js.map",
+    "main.f7099e03.css.map": "/peien_portfolio/static/css/main.f7099e03.css.map",
+    "main.c2e19572.js.map": "/peien_portfolio/static/js/main.c2e19572.js.map",
     "453.117b0875.chunk.js.map": "/peien_portfolio/static/js/453.117b0875.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.ee9144d3.css",
-    "static/js/main.f37fddca.js"
+    "static/css/main.f7099e03.css",
+    "static/js/main.c2e19572.js"
   ]
 }
