@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/peien_portfolio/static/css/main.f7099e03.css",
-    "main.js": "/peien_portfolio/static/js/main.c2e19572.js",
+    "main.css": "/peien_portfolio/static/css/main.37e92e74.css",
+    "main.js": "/peien_portfolio/static/js/main.56671e72.js",
     "static/js/453.117b0875.chunk.js": "/peien_portfolio/static/js/453.117b0875.chunk.js",
     "static/media/2.jpg": "/peien_portfolio/static/media/2.95c3c8f689be23e87d81.jpg",
     "static/media/cv-ch1018.pdf": "/peien_portfolio/static/media/cv-ch1018.48adebf5157b79da6529.pdf",
@@ -18,12 +18,12 @@
     "static/media/作品集public_頁面_24.jpg": "/peien_portfolio/static/media/作品集public_頁面_24.eaefb41e023edbe26cc9.jpg",
     "static/media/作品集public_頁面_20.jpg": "/peien_portfolio/static/media/作品集public_頁面_20.0d59875ae7856354ac75.jpg",
     "index.html": "/peien_portfolio/index.html",
-    "main.f7099e03.css.map": "/peien_portfolio/static/css/main.f7099e03.css.map",
-    "main.c2e19572.js.map": "/peien_portfolio/static/js/main.c2e19572.js.map",
+    "main.37e92e74.css.map": "/peien_portfolio/static/css/main.37e92e74.css.map",
+    "main.56671e72.js.map": "/peien_portfolio/static/js/main.56671e72.js.map",
     "453.117b0875.chunk.js.map": "/peien_portfolio/static/js/453.117b0875.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.f7099e03.css",
-    "static/js/main.c2e19572.js"
+    "static/css/main.37e92e74.css",
+    "static/js/main.56671e72.js"
   ]
 }
