@@ -53,6 +53,30 @@ def parse_list_field(value: str | None) -> List[str]:
     return [part for part in parts if part]
 
 
+def parse_object_list(value: str | None) -> List[Dict[str, str]]:
+    cleaned = clean_jsonish(value)
+    if not cleaned:
+        return []
+    try:
+        parsed = json.loads(cleaned)
+    except json.JSONDecodeError:
+        return []
+
+    results: List[Dict[str, str]] = []
+    if isinstance(parsed, list):
+        for item in parsed:
+            if isinstance(item, dict):
+                results.append(
+                    {
+                        key: (str(val).strip() if val is not None else "")
+                        for key, val in item.items()
+                    }
+                )
+            elif isinstance(item, str) and item.strip():
+                results.append({"name": item.strip()})
+    return [entry for entry in results if any(entry.values())]
+
+
 def generate_work_details(
     csv_path: Path, mapping: Dict[str, str], output_path: Path
 ) -> None:
@@ -102,6 +126,9 @@ def generate_work_details(
                 "introList": parse_list_field(row.get("introd_list")),
                 "headPic": (row.get("headPic") or "").strip(),
                 "tags": parse_list_field(row.get("tag")),
+                "links": parse_object_list(row.get("link")),
+                "coWorkers": parse_object_list(row.get("coWorker")),
+                "content": row.get("content", "").strip(),
             }
 
     output_path.write_text(

@@ -36,6 +36,9 @@ type WorkDetail = {
   introList?: string[];
   headPic?: string;
   tags?: string[];
+  links?: Array<{ name?: string; link?: string }>;
+  coWorkers?: Array<{ name?: string; work?: string; link?: string }>;
+  content?: string;
 };
 
 const getPortfolioName = (code: string): string | undefined =>
@@ -48,14 +51,20 @@ const CV_ASSETS: Record<string, string> = {
 };
 const DEFAULT_ROUTE_ENTRY: PortfolioRouteEntry = ROUTE_CONFIG.default ?? {};
 const workDetailMap = workDetails as Record<string, WorkDetail>;
+type WorkGalleryItem = {
+  type: 'image' | 'pdf';
+  src: string;
+};
+
 type WorkImages = {
   main: string | null;
-  gallery: string[];
+  gallery: WorkGalleryItem[];
+  videos: string[];
 };
 
 const WORK_IMAGE_MAP: Record<string, WorkImages> = (() => {
   const map: Record<string, WorkImages> = {};
-  const context = require.context('./asset/work', true, /\.(png|jpe?g|gif|svg)$/);
+  const context = require.context('./asset/work', true, /\.(png|jpe?g|gif|svg|pdf)$/);
   context.keys().forEach((key) => {
     const src = context(key) as string;
     const normalized = key.replace('./', '');
@@ -65,17 +74,52 @@ const WORK_IMAGE_MAP: Record<string, WorkImages> = (() => {
     }
     const code = folder.toLowerCase();
     if (!map[code]) {
-      map[code] = { main: null, gallery: [] };
+      map[code] = { main: null, gallery: [], videos: [] };
     }
     const lowerFile = file.toLowerCase();
-    if (lowerFile === 'mainpic.png' || lowerFile.startsWith('main.')) {
+    if (
+      lowerFile.startsWith('mainpic') ||
+      lowerFile.startsWith('main.') ||
+      lowerFile.startsWith('headpic')
+    ) {
       map[code].main = src;
     } else {
-      map[code].gallery.push(src);
+      const type: WorkGalleryItem['type'] = lowerFile.endsWith('.pdf') ? 'pdf' : 'image';
+      map[code].gallery.push({ type, src });
     }
   });
   return map;
 })();
+
+const embedYouTube = (url: string): string => {
+  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  if (!youtubeMatch) {
+    return url;
+  }
+  return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+};
+
+const parseArray = (value?: string | string[]): string[] => {
+  if (!value) {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value;
+  }
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      return parsed.map((item) => String(item).trim()).filter(Boolean);
+    }
+  } catch (error) {
+    // fallback to newline split
+  }
+  return value
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
 
 const resolvePreviewUrl = (path?: string): string | null => {
   const trimmed = (path || '').trim();
@@ -393,24 +437,51 @@ const Main: React.FC = () => {
 
     const updateActive = () => {
       const offset = getScrollOffset();
-      const positions = sections
-        .map(({ code, element }) => ({
-          code,
-          top: element.getBoundingClientRect().top - offset,
-        }))
-        .sort((a, b) => a.top - b.top);
+      const viewportHeight = window.innerHeight;
+      const focusTop = viewportHeight * 0.35;
+      const focusBottom = viewportHeight * 0.75;
 
-      const target =
-        positions.find((entry) => entry.top >= -32) ??
-        positions[positions.length - 1];
+      let candidate: PortfolioCode | null = null;
 
-      if (target) {
+      sections.forEach(({ code, element }, index) => {
+        const rect = element.getBoundingClientRect();
+        const adjustedTop = rect.top - offset;
+        const adjustedBottom = rect.bottom - offset;
+
+        const isWithinFocus =
+          adjustedTop <= focusBottom && adjustedBottom >= focusTop;
+
+        if (isWithinFocus) {
+          if (candidate === null) {
+            candidate = code;
+          }
+          const nextSection = sections[index + 1];
+          if (
+            nextSection &&
+            nextSection.element.getBoundingClientRect().top - offset < focusBottom
+          ) {
+            candidate = nextSection.code;
+          }
+        }
+      });
+
+      if (candidate === null && sections.length) {
+        const { code, element } = sections[sections.length - 1];
+        const rect = element.getBoundingClientRect();
+        if (rect.top - offset < focusBottom) {
+          candidate = code;
+        }
+      }
+
+      if (candidate) {
         const sectionCategory = categoriesWithMatrix.find((category) =>
-          Boolean(category.itemsMap[target.code]),
+          Boolean(category.itemsMap[candidate!]),
         );
-        setExpandedCategory(sectionCategory?.name ?? null);
+        if (!window.matchMedia('(max-width: 768px)').matches) {
+          setExpandedCategory(sectionCategory?.name ?? null);
+        }
         setActivePortfolio((current) =>
-          current === target.code ? current : target.code,
+          current === candidate ? current : candidate,
         );
       }
     };
@@ -610,6 +681,7 @@ const Main: React.FC = () => {
                 const imageResources = WORK_IMAGE_MAP[item.code.toLowerCase()] || {
                   main: null,
                   gallery: [],
+                  videos: [],
                 };
                 const previewUrl = detail.headPic
                   ? resolvePreviewUrl(detail.headPic)
@@ -626,9 +698,14 @@ const Main: React.FC = () => {
                 const fullDisplayName =
                   detail.fullName || detail.tableName || item.name;
                 const tags = detail.tags ?? [];
-                const galleryImages = previewUrl
-                  ? imageResources.gallery.filter((src) => src !== previewUrl)
-                  : imageResources.gallery;
+                const galleryItems = imageResources.gallery.filter((galleryItem) =>
+                  previewUrl ? galleryItem.src !== previewUrl : true,
+                );
+                const videoUrls = parseArray(detail.content).filter((link) =>
+                  /youtube\.com|youtu\.be/.test(link),
+                );
+                const links = detail.links ?? [];
+                const coWorkers = detail.coWorkers ?? [];
 
                 return (
                   <section
@@ -651,6 +728,9 @@ const Main: React.FC = () => {
                         <div className="portfolio-heading portfolio-heading-inline">
                           <h2>{fullDisplayName}</h2>
                         </div>
+                        {detail.h2Name && (
+                          <p className="portfolio-subtitle">{detail.h2Name}</p>
+                        )}
                         {tags.length > 0 && (
                           <div className="portfolio-tags">
                             {tags.map((tag, index) => (
@@ -663,21 +743,31 @@ const Main: React.FC = () => {
                         {introParagraphs.map((paragraph, index) => (
                           <p key={index}>{paragraph}</p>
                         ))}
-                        {!isExpanded && (
-                          <button
-                            type="button"
-                            className="portfolio-toggle preview-toggle"
-                            onClick={() => toggleWork(item.code)}
-                          >
-                            閱讀更多
-                          </button>
-                        )}
+                        <div className="portfolio-summary-footer">
+                          {yearRange ? (
+                            <span className="portfolio-year">{yearRange}</span>
+                          ) : (
+                            <span className="portfolio-year" />
+                          )}
+                          {!isExpanded && (
+                            <button
+                              type="button"
+                              className="portfolio-toggle preview-toggle"
+                              onClick={() => toggleWork(item.code)}
+                            >
+                              閱讀更多
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                     {isExpanded && (
                       <div className="portfolio-details">
                         <div className="portfolio-detail-banner">
-                          <span>{fullDisplayName}</span>
+                          <span>
+                            {fullDisplayName}
+                            {detail.h2Name ? ` | ${detail.h2Name}` : ''}
+                          </span>
                           <div className="portfolio-detail-actions">
                             <button
                               type="button"
@@ -698,9 +788,6 @@ const Main: React.FC = () => {
                             </button>
                           </div>
                         </div>
-                        {yearRange && (
-                          <p className="portfolio-meta">{yearRange}</p>
-                        )}
                         {detail.introList && detail.introList.length > 0 && (
                           <ul className="portfolio-detail-list">
                             {detail.introList.map((entry, index) => (
@@ -708,15 +795,87 @@ const Main: React.FC = () => {
                             ))}
                           </ul>
                         )}
-                        {galleryImages.length > 0 && (
+                        {(galleryItems.length > 0 || videoUrls.length > 0) && (
                           <div className="portfolio-gallery">
-                            {galleryImages.map((src, index) => (
-                              <img
-                                key={index}
-                                src={src}
-                                alt={`${fullDisplayName} 作品圖 ${index + 1}`}
-                              />
+                            {galleryItems.map((galleryItem, index) =>
+                              galleryItem.type === 'pdf' ? (
+                                <object
+                                  key={`pdf-${index}`}
+                                  data={galleryItem.src}
+                                  type="application/pdf"
+                                  className="portfolio-preview-pdf"
+                                  aria-label={`${fullDisplayName} PDF ${index + 1}`}
+                                >
+                                  <a href={galleryItem.src} target="_blank" rel="noopener noreferrer">
+                                    下載 {fullDisplayName} PDF
+                                  </a>
+                                </object>
+                              ) : (
+                                <img
+                                  key={`img-${index}`}
+                                  src={galleryItem.src}
+                                  alt={`${fullDisplayName} 作品圖 ${index + 1}`}
+                                />
+                              ),
+                            )}
+                            {videoUrls.map((link, index) => (
+                              <div className="portfolio-video" key={`video-${index}`}>
+                                <iframe
+                                  src={embedYouTube(link)}
+                                  title={`${fullDisplayName} 影片 ${index + 1}`}
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
                             ))}
+                          </div>
+                        )}
+                        {coWorkers.length > 0 && (
+                          <div className="portfolio-meta-block">
+                            <h4 className="portfolio-meta-title">合作夥伴</h4>
+                            <ul className="portfolio-meta-list">
+                              {coWorkers.map((person, index) => (
+                                <li key={`co-${index}`}>
+                                  <span>{person.name || '未提供姓名'}</span>
+                                  {person.work && (
+                                    <span className="portfolio-meta-note">{person.work}</span>
+                                  )}
+                                  {person.link && (
+                                    <a
+                                      href={person.link}
+                                      className="portfolio-meta-link"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      連結
+                                    </a>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {links.length > 0 && (
+                          <div className="portfolio-meta-block">
+                            <h4 className="portfolio-meta-title">相關連結</h4>
+                            <ul className="portfolio-meta-list">
+                              {links.map((item, index) => (
+                                <li key={`link-${index}`}>
+                                  {item.link ? (
+                                    <a
+                                      href={item.link}
+                                      className="portfolio-meta-link"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      {item.name || item.link}
+                                    </a>
+                                  ) : (
+                                    item.name || item.link
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         )}
                       </div>
