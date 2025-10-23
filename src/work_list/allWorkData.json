@@ -70,7 +70,7 @@
   "mh1": {
     "fullName": "Slices to shape 層疊式形狀模擬裝置設計與觸覺實驗",
     "h2Name": "",
-    "tableName": "城市熱環境調查實驗與分析",
+    "tableName": "層疊式形狀模擬裝置設計與觸覺實驗",
     "yearBegin": "2023",
     "yearEnd": "2024",
     "intro": "本專案探討疊層結構於VR形狀觸覺模擬中的應用，利用層疊式機構提供 360 度觸覺回饋，同時簡化傳統針點式裝置的結構複雜性。專案經三階段迭代，分別探討：(1) 不同形狀疊層的、(2) 相同形狀於不同旋轉角度、(3) 相同形狀在不同軸心位置與旋轉角度，旨在創造更豐富的觸覺體驗。另外針對使用者體驗設計出 21 種形狀，並進行人機互動實驗，以分析觸覺與視覺感知之間的差異。",
@@ -230,23 +230,7 @@
     ],
     "coWorkers": [
       {
-        "name": "李佩恩",
-        "work": "共同創作"
-      },
-      {
-        "name": "李羿璋",
-        "work": "共同創作"
-      },
-      {
-        "name": "李昆霖",
-        "work": "共同創作"
-      },
-      {
-        "name": "黃映慈",
-        "work": "共同創作"
-      },
-      {
-        "name": "張貽菻",
+        "name": "李佩恩/李羿璋/李昆霖/黃映慈/張貽菻",
         "work": "共同創作"
       }
     ],
@@ -358,7 +342,16 @@
       "資訊視覺化",
       "產品設計"
     ],
-    "links": [],
+    "links": [
+      {
+        "name": "Information is Beautiful Award",
+        "link": "https://www.informationisbeautifulawards.com/showcase/7630-lunar-dynamics-map"
+      },
+      {
+        "name": "介面操作網頁",
+        "link": "https://openprocessing.org/sketch/1673755"
+      }
+    ],
     "coWorkers": [],
     "content": ""
   },
@@ -414,8 +407,34 @@
       "量產化",
       "無障礙"
     ],
-    "links": [],
-    "coWorkers": [],
+    "links": [
+      {
+        "name": "日本樂天銷售網站",
+        "link": "https://item.rakuten.co.jp/famica-store/aaa025/"
+      },
+      {
+        "name": "官網介紹",
+        "link": "https://www.dembygroup.com/en/product.php?act=view&id=317"
+      }
+    ],
+    "coWorkers": [
+      {
+        "name": "李佩恩",
+        "work": "主要負責設計師"
+      },
+      {
+        "name": "Mark Song",
+        "work": "共同設計師"
+      },
+      {
+        "name": "Spark Wang",
+        "work": "結構指導"
+      },
+      {
+        "name": "Megan Wang",
+        "work": "初步造形概念"
+      }
+    ],
     "content": ""
   },
   "id2": {

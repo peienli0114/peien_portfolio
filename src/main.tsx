@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './main.css';
 import portfolioMap from './work_list/portfolioMap.json';
 import portfolioRoutes from './work_list/portfolioRoutes.json';
@@ -143,7 +143,13 @@ const Main: React.FC = () => {
   const [expandedWorks, setExpandedWorks] = useState<PortfolioCode[]>([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const overviewRef = useRef<HTMLDivElement | null>(null);
+  const overviewRowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const overviewRowListeners = useRef<Record<string, () => void>>({});
+  const [overviewScrollState, setOverviewScrollState] = useState<
+    Record<string, { left: boolean; right: boolean }>
+  >({});
 
   const routeKey = useMemo(() => {
     if (typeof window === 'undefined') {
@@ -225,13 +231,119 @@ const Main: React.FC = () => {
   };
 
   const toggleCategoryCollapse = (categoryName: string) => {
-    setExpandedCategory((current) =>
-      current === categoryName ? null : categoryName,
+    setExpandedCategories((prev) =>
+      prev.includes(categoryName)
+        ? prev.filter((name) => name !== categoryName)
+        : [...prev, categoryName],
     );
   };
 
+  const updateOverviewScrollState = useCallback((name: string) => {
+    const node = overviewRowRefs.current[name];
+    if (!node) {
+      setOverviewScrollState((prev) => {
+        if (!(name in prev)) {
+          return prev;
+        }
+        const { [name]: _removed, ...rest } = prev;
+        return rest;
+      });
+      return;
+    }
+
+    const { scrollLeft, scrollWidth, clientWidth } = node;
+    const left = scrollLeft > 8;
+    const right = scrollLeft + clientWidth < scrollWidth - 8;
+    setOverviewScrollState((prev) => {
+      const previous = prev[name];
+      if (previous && previous.left === left && previous.right === right) {
+        return prev;
+      }
+      return { ...prev, [name]: { left, right } };
+    });
+  }, []);
+
+  const registerOverviewRow = useCallback(
+    (name: string) => (node: HTMLDivElement | null) => {
+      const prevNode = overviewRowRefs.current[name];
+      const prevHandler = overviewRowListeners.current[name];
+      if (prevNode === node) {
+        return;
+      }
+      if (prevNode && prevHandler) {
+        prevNode.removeEventListener('scroll', prevHandler);
+      }
+
+      if (!node) {
+        delete overviewRowRefs.current[name];
+        delete overviewRowListeners.current[name];
+        setOverviewScrollState((prev) => {
+          if (!(name in prev)) {
+            return prev;
+          }
+          const { [name]: _removed, ...rest } = prev;
+          return rest;
+        });
+        return;
+      }
+
+      overviewRowRefs.current[name] = node;
+      const handler = () => updateOverviewScrollState(name);
+      overviewRowListeners.current[name] = handler;
+      node.addEventListener('scroll', handler);
+      if (typeof window !== 'undefined') {
+        window.requestAnimationFrame(() => handler());
+      } else {
+        handler();
+      }
+    },
+    [updateOverviewScrollState],
+  );
+
+  const handleOverviewScroll = useCallback((name: string, direction: 'left' | 'right') => {
+    const node = overviewRowRefs.current[name];
+    if (!node) {
+      return;
+    }
+    const delta = node.clientWidth * 0.75;
+    node.scrollBy({
+      left: direction === 'left' ? -delta : delta,
+      behavior: 'smooth',
+    });
+  }, []);
+
   const defaultCodes = useMemo(
     () => Object.keys(portfolioMap).sort((a, b) => a.localeCompare(b)),
+    [],
+  );
+
+  const getYearRangeText = useCallback((detail: WorkDetail): string => {
+    const start = (detail.yearBegin || '').trim();
+    const end = (detail.yearEnd || '').trim();
+    if (start && end && start !== end) {
+      return `${start} – ${end}`;
+    }
+    return start || end || '';
+  }, []);
+
+  const updateExpandedCategories = useCallback(
+    (categoryName: string | null, collapseOthers = false) => {
+      if (!categoryName) {
+        return;
+      }
+      setExpandedCategories((prev) => {
+        const already = prev.includes(categoryName);
+        if (collapseOthers) {
+          return already && prev.length === 1 && prev[0] === categoryName
+            ? prev
+            : [categoryName];
+        }
+        if (already) {
+          return prev;
+        }
+        return [...prev, categoryName];
+      });
+    },
     [],
   );
 
@@ -360,7 +472,7 @@ const Main: React.FC = () => {
   }, [categoriesWithMatrix]);
 
   useEffect(() => {
-    setExpandedCategory(null);
+    setExpandedCategories([]);
     setIsSidebarCollapsed(false);
   }, [routeKey, categoriesWithMatrix]);
 
@@ -406,10 +518,7 @@ const Main: React.FC = () => {
       const stillExists = current
         ? portfolioItems.some((item) => item.code === current)
         : false;
-      if (stillExists && current) {
-        return current;
-      }
-      return portfolioItems[0].code;
+      return stillExists ? current : null;
     });
   }, [portfolioItems, selectedContent]);
 
@@ -477,13 +586,13 @@ const Main: React.FC = () => {
         const sectionCategory = categoriesWithMatrix.find((category) =>
           Boolean(category.itemsMap[candidate!]),
         );
-        if (!window.matchMedia('(max-width: 768px)').matches) {
-          setExpandedCategory(sectionCategory?.name ?? null);
-        }
-        setActivePortfolio((current) =>
-          current === candidate ? current : candidate,
-        );
+        const collapseOthers = !window.matchMedia('(max-width: 768px)').matches;
+        updateExpandedCategories(sectionCategory?.name ?? null, collapseOthers);
       }
+
+      setActivePortfolio((current) =>
+        current === candidate ? current : candidate ?? null,
+      );
     };
 
     let ticking = false;
@@ -518,6 +627,7 @@ const Main: React.FC = () => {
     portfolioItems,
     selectedContent,
     updateMobileNavHeightVar,
+    updateExpandedCategories,
   ]);
 
   useEffect(() => {
@@ -527,6 +637,25 @@ const Main: React.FC = () => {
       ),
     );
   }, [portfolioItems]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const handleResize = () => {
+      Object.keys(overviewRowRefs.current).forEach((name) => {
+        updateOverviewScrollState(name);
+      });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [updateOverviewScrollState]);
+
+  useEffect(() => {
+    Object.keys(overviewRowRefs.current).forEach((name) => {
+      updateOverviewScrollState(name);
+    });
+  }, [categoriesWithMatrix, selectedContent, updateOverviewScrollState]);
 
   const toggleWork = (code: PortfolioCode) => {
     setExpandedWorks((prev) =>
@@ -541,19 +670,35 @@ const Main: React.FC = () => {
     closeNavOnMobile();
     if (code) {
       setActivePortfolio(code);
+      const matchedCategory = categoriesWithMatrix.find((category) =>
+        Boolean(category.itemsMap[code]),
+      );
+      const collapseOthers = !window.matchMedia('(max-width: 768px)').matches;
+      updateExpandedCategories(matchedCategory?.name ?? null, collapseOthers);
+    } else {
+      setActivePortfolio(null);
     }
 
     requestAnimationFrame(() => {
       const targetCode = code ?? portfolioItems[0]?.code;
-      if (!targetCode) {
+      if (code) {
+        const section = document.getElementById(`portfolio-${targetCode}`);
+        if (section && typeof window !== 'undefined') {
+          const offset = getScrollOffset();
+          const position =
+            section.getBoundingClientRect().top + window.scrollY - offset - 8;
+          window.scrollTo({ top: position, behavior: 'smooth' });
+        }
         return;
       }
 
-      const section = document.getElementById(`portfolio-${targetCode}`);
-      if (section && typeof window !== 'undefined') {
+      if (overviewRef.current && typeof window !== 'undefined') {
         const offset = getScrollOffset();
         const position =
-          section.getBoundingClientRect().top + window.scrollY - offset - 8;
+          overviewRef.current.getBoundingClientRect().top +
+          window.scrollY -
+          offset -
+          12;
         window.scrollTo({ top: position, behavior: 'smooth' });
       }
     });
@@ -594,16 +739,32 @@ const Main: React.FC = () => {
           作品集
         </button>
         <div className="sidebar-category-collection">
+          <div className="sidebar-subitem">
+            <button
+              type="button"
+              onClick={() => handlePortfolioNavClick()}
+              className={`sidebar-button sidebar-button--sub${
+                selectedContent === 'portfolio' && !activePortfolio
+                  ? ' is-active'
+                  : ''
+              }`}
+            >
+              作品集目錄
+            </button>
+          </div>
           {categories.map((category) => {
-            const isOpen = expandedCategory === category.name;
+            const isOpen = expandedCategories.includes(category.name);
             const containsActive = category.items.some(
               (item) => item.code === activePortfolio,
             );
             return (
-              <div className="sidebar-category-group" key={category.name}>
+              <div
+                className="sidebar-category-group sidebar-subitem"
+                key={category.name}
+              >
                 <button
                   type="button"
-                  className={`sidebar-category-title${
+                  className={`sidebar-category-title sidebar-category-title--sub${
                     isOpen ? ' is-open' : ''
                   }${containsActive ? ' is-active' : ''}`}
                   onClick={() => toggleCategoryCollapse(category.name)}
@@ -617,11 +778,11 @@ const Main: React.FC = () => {
                 {isOpen && (
                   <ul>
                     {category.items.map((item) => (
-                      <li key={item.code}>
+                      <li key={item.code} className="sidebar-leaf">
                         <button
                           type="button"
                           onClick={() => handlePortfolioNavClick(item.code)}
-                          className={`sidebar-button${
+                          className={`sidebar-button sidebar-button--leaf${
                             selectedContent === 'portfolio' &&
                             activePortfolio === item.code
                               ? ' is-active'
@@ -666,13 +827,110 @@ const Main: React.FC = () => {
         );
       }
 
+      const overview = (
+        <div
+          ref={overviewRef}
+          className="portfolio-overview"
+          aria-labelledby="portfolio-overview-heading"
+        >
+          <div className="portfolio-overview-header">
+            <h2 id="portfolio-overview-heading">作品集目錄</h2>
+            <p>依分類快速預覽作品，點擊卡片即可跳轉至下方詳細介紹。</p>
+          </div>
+          {categoriesWithMatrix.map((category) => {
+            if (!category.items.length) {
+              return null;
+            }
+            return (
+              <div className="portfolio-overview-category" key={`overview-${category.name}`}>
+                <h3 className="portfolio-overview-title">{category.name}</h3>
+                <div className="portfolio-overview-row">
+                  <button
+                    type="button"
+                    className="portfolio-overview-scroll is-left"
+                    onClick={() => handleOverviewScroll(category.name, 'left')}
+                    disabled={!overviewScrollState[category.name]?.left}
+                    aria-label={`${category.name} 往左捲動`}
+                  >
+                    ‹
+                  </button>
+                  <div
+                    className="portfolio-overview-items"
+                    ref={registerOverviewRow(category.name)}
+                  >
+                    {category.items.map((item) => {
+                      const detail = item.detail;
+                      const preview = detail.headPic
+                        ? resolvePreviewUrl(detail.headPic)
+                        : WORK_IMAGE_MAP[item.code.toLowerCase()]?.main || null;
+                      const yearText = getYearRangeText(detail);
+                      const displayName =
+                        detail.tableName || detail.fullName || item.name;
+                      return (
+                        <button
+                          type="button"
+                          key={`overview-card-${item.code}`}
+                          className={`portfolio-overview-card${
+                            activePortfolio === item.code ? ' is-active' : ''
+                          }`}
+                          onClick={() => handlePortfolioNavClick(item.code)}
+                        >
+                          <div className="portfolio-overview-thumb">
+                            {preview ? (
+                              <img
+                                src={preview}
+                                alt={`${detail.tableName || item.name} 預覽`}
+                              />
+                            ) : (
+                              <span className="portfolio-overview-placeholder">
+                                尚未提供主圖
+                              </span>
+                            )}
+                          </div>
+                          <div className="portfolio-overview-info">
+                            <span className="portfolio-overview-name">
+                              {displayName}
+                            </span>
+                            {detail.h2Name && (
+                              <span className="portfolio-overview-subtitle">
+                                {detail.h2Name}
+                              </span>
+                            )}
+                            {yearText && (
+                              <span className="portfolio-overview-year">
+                                {yearText}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    className="portfolio-overview-scroll is-right"
+                    onClick={() => handleOverviewScroll(category.name, 'right')}
+                    disabled={!overviewScrollState[category.name]?.right}
+                    aria-label={`${category.name} 往右捲動`}
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+
       return (
-        <div className="portfolio-container">
-          {categoriesWithMatrix.map((category) => (
-            <React.Fragment key={category.name}>
-              {category.items.length > 0 && (
-                <div className="portfolio-category-divider" data-category={category.name}>
-                  <span>{category.name}</span>
+        <>
+          {overview}
+          <div className="portfolio-container">
+            {categoriesWithMatrix.map((category) => (
+              <React.Fragment key={category.name}>
+                {category.items.length > 0 && (
+                  <div className="portfolio-category-divider" data-category={category.name}>
+                    <span>{category.name}</span>
                 </div>
               )}
               {category.items.map((item) => {
@@ -692,9 +950,7 @@ const Main: React.FC = () => {
                   .split(/\n\s*\n/)
                   .map((segment) => segment.replace(/\s+/g, ' ').trim())
                   .filter(Boolean);
-                const yearRange = [detail.yearBegin, detail.yearEnd]
-                  .filter(Boolean)
-                  .join(' – ');
+                const yearRange = getYearRangeText(detail);
                 const fullDisplayName =
                   detail.fullName || detail.tableName || item.name;
                 const tags = detail.tags ?? [];
@@ -777,14 +1033,14 @@ const Main: React.FC = () => {
                                 section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                               }}
                             >
-                              回到頂部
+                              ↑
                             </button>
                             <button
                               type="button"
                               className="portfolio-detail-close"
                               onClick={() => toggleWork(item.code)}
                             >
-                              關閉 ×
+                              Ｘ
                             </button>
                           </div>
                         </div>
@@ -832,7 +1088,7 @@ const Main: React.FC = () => {
                         )}
                         {coWorkers.length > 0 && (
                           <div className="portfolio-meta-block">
-                            <h4 className="portfolio-meta-title">合作夥伴</h4>
+                            <h4 className="portfolio-meta-title">專案成員</h4>
                             <ul className="portfolio-meta-list">
                               {coWorkers.map((person, index) => (
                                 <li key={`co-${index}`}>
@@ -883,9 +1139,10 @@ const Main: React.FC = () => {
                   </section>
                 );
               })}
-            </React.Fragment>
-          ))}
-        </div>
+              </React.Fragment>
+            ))}
+          </div>
+        </>
       );
     }
 

@@ -35,6 +35,7 @@ def clean_jsonish(value: str | None) -> str | None:
     }
     for target, repl in replacements.items():
         cleaned = cleaned.replace(target, repl)
+    cleaned = cleaned.replace("}\n{", "},{").replace("}\r\n{", "},{")
     return cleaned
 
 
