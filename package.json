@@ -1,6 +1,5 @@
 {
   "name": "my-app",
-  "homepage": "https://peienli0114.github.io/peien_portfolio",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -21,9 +20,10 @@
   },
   "scripts": {
     "sync-portfolio": "python3 scripts/generate_portfolio_map.py || python scripts/generate_portfolio_map.py",
-    "prestart": "npm run sync-portfolio",
-    "prebuild": "npm run sync-portfolio",
-    "predeploy": "npm run build",
+    "prestart": "yarn sync-portfolio",
+    "prebuild": "yarn sync-portfolio",
+    "build:gh": "PUBLIC_URL=/peien_portfolio yarn build",
+    "predeploy": "yarn build:gh",
     "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
