@@ -22,7 +22,7 @@
     "sync-portfolio": "python3 scripts/generate_portfolio_map.py || python scripts/generate_portfolio_map.py",
     "prestart": "yarn sync-portfolio",
     "prebuild": "yarn sync-portfolio",
-    "build:gh": "PUBLIC_URL=/peien_portfolio yarn build",
+    "build:gh": "node scripts/build-gh.js",
     "predeploy": "yarn build:gh",
     "deploy": "gh-pages -d build",
     "start": "react-scripts start",

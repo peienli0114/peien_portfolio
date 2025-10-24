@@ -10,6 +10,8 @@ import {
   PortfolioItem,
   PortfolioRouteConfig,
   PortfolioRouteEntry,
+  CvRouteValue,
+  CvSettings,
   WorkDetail,
 } from '../types/portfolio';
 import {
@@ -20,9 +22,19 @@ import {
 const ROUTE_CONFIG = portfolioRoutes as PortfolioRouteConfig;
 const DEFAULT_ROUTE_ENTRY: PortfolioRouteEntry = ROUTE_CONFIG.default ?? {};
 const DEFAULT_CV_KEY = 'cv-ch1018.pdf';
-const CV_ASSETS: Record<string, string> = {
-  [DEFAULT_CV_KEY]: defaultCvPdf,
-};
+const CV_CONTEXT = require.context('../asset/cv', false, /\.pdf$/);
+const CV_ASSETS: Record<string, string> = CV_CONTEXT.keys().reduce(
+  (acc, key) => {
+    const assetKey = key.replace('./', '');
+    acc[assetKey] = CV_CONTEXT(key) as string;
+    return acc;
+  },
+  {} as Record<string, string>,
+);
+
+if (!CV_ASSETS[DEFAULT_CV_KEY]) {
+  CV_ASSETS[DEFAULT_CV_KEY] = defaultCvPdf;
+}
 
 const workDetailMap = workDetails as Record<string, WorkDetail>;
 
@@ -81,8 +93,53 @@ const buildCategories = (
   return result;
 };
 
+const normaliseCvRoute = (
+  config: CvRouteValue | undefined,
+): { asset?: string; link?: string; groups?: string[] } => {
+  if (!config) {
+    return {};
+  }
+  if (typeof config === 'string') {
+    return { asset: config.trim() || undefined };
+  }
+  const asset = config.asset?.trim() || undefined;
+  const link = config.link?.trim() || undefined;
+  const sourceGroups = Array.isArray(config.showGroups)
+    ? config.showGroups
+    : Array.isArray(config.showTypes)
+    ? config.showTypes
+    : undefined;
+  const groups = sourceGroups
+    ? Array.from(
+        new Set(
+          sourceGroups
+            .map((item) => item?.trim())
+            .filter((item): item is string => Boolean(item)),
+        ),
+      )
+    : undefined;
+  return { asset, link, groups };
+};
+
+const normaliseGroupList = (groups?: string[] | null): string[] | null => {
+  if (!groups || groups.length === 0) {
+    return null;
+  }
+  const cleaned = groups
+    .map((group) => group?.trim())
+    .filter((group): group is string => Boolean(group));
+  if (!cleaned.length) {
+    return null;
+  }
+  return Array.from(new Set(cleaned));
+};
+
 export const usePortfolioData = (routeKey: string) => {
   const currentEntry = ROUTE_CONFIG[routeKey] ?? {};
+  const defaultCvConfig = useMemo(
+    () => normaliseCvRoute(DEFAULT_ROUTE_ENTRY.cv),
+    [],
+  );
 
   const categories = useMemo<PortfolioCategory[]>(() => {
     let resolvedCategories = buildCategories(currentEntry.categories);
@@ -159,18 +216,36 @@ export const usePortfolioData = (routeKey: string) => {
     return start || end || '';
   }, []);
 
-  const cvAsset = useMemo(() => {
-    const defaultKey = DEFAULT_ROUTE_ENTRY.cv ?? DEFAULT_CV_KEY;
-    const currentKey =
-      currentEntry.cv ?? DEFAULT_ROUTE_ENTRY.cv ?? DEFAULT_CV_KEY;
-    return CV_ASSETS[currentKey] ?? CV_ASSETS[defaultKey] ?? defaultCvPdf;
-  }, [currentEntry]);
+  const cvSettings = useMemo<CvSettings>(() => {
+    const currentConfig = normaliseCvRoute(currentEntry.cv);
 
-  const cvUrl = useMemo(
-    () =>
-      `${cvAsset}#toolbar=0&navpanes=0&scrollbar=0&view=FitH&zoom=page-width`,
-    [cvAsset],
-  );
+    const resolvedAssetKey =
+      currentConfig.asset ??
+      defaultCvConfig.asset ??
+      (typeof DEFAULT_ROUTE_ENTRY.cv === 'string'
+        ? DEFAULT_ROUTE_ENTRY.cv
+        : DEFAULT_CV_KEY) ??
+      DEFAULT_CV_KEY;
+
+    const downloadUrl =
+      resolvedAssetKey && CV_ASSETS[resolvedAssetKey]
+        ? CV_ASSETS[resolvedAssetKey]
+        : CV_ASSETS[DEFAULT_CV_KEY] ?? null;
+
+    const resolvedLink =
+      currentConfig.link ?? defaultCvConfig.link ?? null;
+
+    const resolvedGroups =
+      normaliseGroupList(currentConfig.groups) ??
+      normaliseGroupList(defaultCvConfig.groups) ??
+      null;
+
+    return {
+      downloadUrl,
+      link: resolvedLink,
+      groups: resolvedGroups,
+    };
+  }, [currentEntry, defaultCvConfig]);
 
   return {
     categories,
@@ -179,7 +254,6 @@ export const usePortfolioData = (routeKey: string) => {
     workDetailMap,
     workImageMap: WORK_IMAGE_MAP,
     getYearRangeText,
-    cvUrl,
-    defaultCodes,
+    cvSettings,
   };
 };

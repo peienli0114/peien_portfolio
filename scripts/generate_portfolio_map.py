@@ -12,8 +12,10 @@ import json
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Tuple
 import zipfile
+
+import re
 
 
 def normalise_text(value: str | None) -> str:
@@ -78,6 +80,59 @@ def parse_object_list(value: str | None) -> List[Dict[str, str]]:
     return [entry for entry in results if any(entry.values())]
 
 
+def parse_bool(value: str | None) -> bool:
+    if value is None:
+        return False
+    normalized = value.strip().lower()
+    return normalized in {"true", "1", "yes", "y"}
+
+
+def parse_related_codes(value: str | None) -> List[str]:
+    if not value:
+        return []
+    cleaned = value.replace("[", " ").replace("]", " ").strip()
+    if not cleaned:
+        return []
+    parts = [part.strip().lower() for part in re.split(r"[,\s]+", cleaned)]
+    return [part for part in parts if part]
+
+
+def parse_date_key(value: str | None) -> Tuple[int, int]:
+    """
+    Converts date strings like '2025/10' into comparable tuples (year, month).
+    Missing months default to December to indicate ongoing projects end late in the year.
+    """
+    if not value:
+        return (0, 0)
+    cleaned = (
+        value.replace("年", "/")
+        .replace("月", "")
+        .replace(".", "/")
+        .replace("-", "/")
+    )
+    parts = [part for part in re.split(r"[^0-9]", cleaned) if part]
+    if not parts:
+        return (0, 0)
+    try:
+        year = int(parts[0])
+    except ValueError:
+        year = 0
+    month = 12
+    if len(parts) > 1:
+        try:
+            month = int(parts[1])
+        except ValueError:
+            month = 12
+    month = max(1, min(month, 12))
+    return (year, month)
+
+
+def normalize_multiline_text(value: str | None) -> str:
+    if not value:
+        return ""
+    return value.replace("\\n", "\n").replace("\r", "\n").strip()
+
+
 def generate_work_details(
     csv_path: Path, mapping: Dict[str, str], output_path: Path
 ) -> None:
@@ -140,6 +195,75 @@ def generate_work_details(
     print(
         f"Generated {output_path} with {len(details)} entries."
         + (" Unmatched rows: " + ", ".join(unmatched) if unmatched else "")
+    )
+
+
+def generate_experience_data(csv_path: Path, output_path: Path) -> None:
+    if not csv_path.exists():
+        print(f"No experience CSV found at {csv_path}, skipping export.")
+        return
+
+    entries: List[Dict[str, object]] = []
+    type_order: List[str] = []
+
+    with csv_path.open("r", encoding="utf-8-sig") as fh:
+        reader = csv.DictReader(fh)
+        fieldnames = reader.fieldnames or []
+        show_columns = [
+            name
+            for name in fieldnames
+            if name and name.lower().startswith("show")
+        ]
+        for row in reader:
+            type_name = (row.get("type") or "").strip()
+            if not type_name:
+                continue
+            if type_name not in type_order:
+                type_order.append(type_name)
+
+            organisation = (
+                row.get("organization/") or row.get("organization") or ""
+            ).strip()
+            role = (row.get("role") or "").strip()
+            begin = (row.get("begin_m") or "").strip()
+            end = (row.get("end_m") or "").strip()
+            related_work = parse_related_codes(row.get("related_work"))
+            description = normalize_multiline_text(row.get("introd"))
+            show_default = parse_bool(row.get("show_default"))
+            show_groups = [
+                column.strip()
+                for column in show_columns
+                if column and parse_bool(row.get(column))
+            ]
+            if show_default and "show_default" not in show_groups:
+                show_groups.append("show_default")
+
+            entries.append(
+                {
+                    "type": type_name,
+                    "organisation": organisation,
+                    "role": role,
+                    "begin": begin,
+                    "end": end,
+                    "relatedWorks": related_work,
+                    "description": description,
+                    "showDefault": show_default,
+                    "showGroups": show_groups,
+                }
+            )
+
+    payload = {
+        "typeOrder": type_order,
+        "entries": entries,
+    }
+
+    output_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    print(
+        f"Generated {output_path} with {len(entries)} experience entries across {len(type_order)} types."
     )
 
 
@@ -270,6 +394,10 @@ def main(argv: list[str]) -> int:
     csv_path = excel_path.with_name("all_work_list.csv")
     work_output = Path("src/work_list/allWorkData.json")
     generate_work_details(csv_path, mapping, work_output)
+
+    experience_csv = Path("src/asset/cv/experience.csv")
+    experience_output = Path("src/work_list/experienceData.json")
+    generate_experience_data(experience_csv, experience_output)
     return 0
 
 

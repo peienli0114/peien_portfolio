@@ -33,8 +33,23 @@ export type PortfolioCategoryWithMatrix = PortfolioCategory & {
   itemsMap: Record<string, PortfolioItem>;
 };
 
+export type CvRouteValue =
+  | string
+  | {
+      asset?: string;
+      link?: string;
+      showTypes?: string[];
+      showGroups?: string[];
+    };
+
+export type CvSettings = {
+  downloadUrl: string | null;
+  link: string | null;
+  groups: string[] | null;
+};
+
 export type PortfolioRouteEntry = {
-  cv?: string;
+  cv?: CvRouteValue;
   categories?: Record<string, PortfolioCode[]>;
 };
 
@@ -49,4 +64,26 @@ export type WorkImages = {
   main: string | null;
   gallery: WorkGalleryItem[];
   videos: string[];
+};
+
+export type ExperienceEntry = {
+  type: string;
+  organisation: string;
+  role: string;
+  begin: string;
+  end: string;
+  relatedWorks: string[];
+  description: string;
+  showDefault: boolean;
+  showGroups: string[];
+};
+
+export type ExperienceDataset = {
+  typeOrder: string[];
+  entries: ExperienceEntry[];
+};
+
+export type ExperienceGroup = {
+  type: string;
+  items: ExperienceEntry[];
 };

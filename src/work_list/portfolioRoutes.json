@@ -1,12 +1,26 @@
 {
   "default": {
-    "cv": "cv-ch1018.pdf",
+    "cv": {
+      "link": "https://drive.google.com/file/d/1YiAL2N8CWu3KSwhoaSIMnUbafb59tFJd/view?usp=drive_link",
+      "showGroups": [
+        "show_default"
+      ]
+    },
     "categories": {
-      "作品集": []
+      "使用者研究": ["mc1","mh1","mc3"],
+      "城市研究:數據與AI": [ "mit1","mit2","mit3","mc2","da1"],
+      "人機互動": ["mh2","da2"],
+      "未來思考推測設計": ["ai1", "ai2"],
+      "工業設計量產": ["id1","id2"]
     }
   },
   "forxxcompany": {
-    "cv": "cv-ch1018.pdf",
+    "cv": {
+      "link": "https://drive.google.com/file/d/1YiAL2N8CWu3KSwhoaSIMnUbafb59tFJd/view?usp=drive_link",
+      "showGroups": [
+        "show_default"
+      ]
+    },
     "categories": {
       "研究與分析": ["mc1", "mc2", "mit1"],
       "互動體驗": ["mh1", "mh2"],
@@ -14,7 +28,12 @@
     }
   },
   "public": {
-    "cv": "cv-ch1018.pdf",
+    "cv": {
+      "link": "https://drive.google.com/file/d/1YiAL2N8CWu3KSwhoaSIMnUbafb59tFJd/view?usp=drive_link",
+      "showGroups": [
+        "show_default"
+      ]
+    },
     "categories": {
       "使用者研究": ["mc1","mh1","mc3"],
       "城市研究:數據與AI": [ "mit1","mit2","mit3","mc2","da1"],
