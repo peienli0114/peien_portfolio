@@ -63,7 +63,38 @@ def parse_object_list(value: str | None) -> List[Dict[str, str]]:
     try:
         parsed = json.loads(cleaned)
     except json.JSONDecodeError:
-        return []
+        # Fallback parser for loosely formatted JSON-like input
+        fallback_results: List[Dict[str, str]] = []
+        content = cleaned.strip()
+        if content.startswith("[") and content.endswith("]"):
+            content = content[1:-1]
+        # Normalize separators
+        chunks = re.split(r"}\s*,\s*{", content)
+        for chunk in chunks:
+            chunk = chunk.strip()
+            if not chunk:
+                continue
+            chunk = chunk.strip("{} \n\r\t")
+            if not chunk:
+                continue
+            entry: Dict[str, str] = {}
+            # First capture well-formed quoted values
+            for key, val in re.findall(r'"([^"]+)"\s*:\s*"([^"]*)"', chunk):
+                entry[key] = val.strip()
+            # Then capture values missing quotes (up to comma or end brace)
+            for key, val in re.findall(r'"([^"]+)"\s*:\s*([^",}]+)', chunk):
+                if key in entry:
+                    continue
+                cleaned_val = val.strip()
+                if not cleaned_val:
+                    continue
+                if cleaned_val.lower() in {"true", "false", "null"}:
+                    entry[key] = cleaned_val.lower()
+                else:
+                    entry[key] = cleaned_val
+            if any(entry.values()):
+                fallback_results.append(entry)
+        return fallback_results
 
     results: List[Dict[str, str]] = []
     if isinstance(parsed, list):

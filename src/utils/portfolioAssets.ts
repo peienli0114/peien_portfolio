@@ -3,7 +3,7 @@ import { WorkDetail, WorkGalleryItem, WorkImages } from '../types/portfolio';
 const context = require.context(
   '../asset/work',
   true,
-  /\.(png|jpe?g|gif|svg|pdf)$/,
+  /\.(png|jpe?g|gif|svg|pdf)$/i,
 );
 
 export const WORK_IMAGE_MAP: Record<string, WorkImages> = (() => {

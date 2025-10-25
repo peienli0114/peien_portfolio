@@ -216,7 +216,8 @@
 
 .sidebar-button--sub {
   font-size: 0.85rem;
-  padding-left: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  margin: 0 -0.35rem;
 }
 
 .sidebar-category-title--sub {
@@ -289,6 +290,66 @@
   width: 100%;
   padding: 2rem;
   box-sizing: border-box;
+}
+
+.home-section {
+  gap: 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3rem 2.5rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, rgba(253, 146, 37, 0.08), rgba(68, 172, 175, 0.12));
+  box-shadow: 0 20px 45px rgba(42, 31, 7, 0.08);
+}
+
+.home-greeting {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.home-greeting span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(2, 175, 153, 0.2);
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-greeting h2 {
+  margin: 0;
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+}
+
+.home-lead {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--color-text);
+  max-width: 620px;
+}
+
+.home-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: var(--color-text);
+  line-height: 1.8;
+  font-size: 0.98rem;
+}
+
+.home-intro strong {
+  color: var(--color-primary);
 }
 
 .page-sections {
@@ -1104,7 +1165,7 @@
 
 .portfolio-meta-list li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
 }
 
@@ -1114,7 +1175,7 @@
 }
 
 .portfolio-meta-link {
-  margin-left: auto;
+  margin-left: 0;
   color: var(--color-primary);
   text-decoration: none;
 }
@@ -1152,7 +1213,7 @@
 
 .portfolio-meta-list li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
   color: var(--color-text);
 }
@@ -1163,7 +1224,7 @@
 }
 
 .portfolio-meta-link {
-  margin-left: auto;
+  margin-left: 0;
   color: var(--color-primary);
   text-decoration: none;
 }
@@ -1274,6 +1335,11 @@
     border-bottom: 1px solid #d8dee6;
   }
 
+  .mobile-nav.is-open {
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+
   .mobile-nav-inner {
     padding: 1rem 1.25rem;
   }
@@ -1285,6 +1351,9 @@
 
   .mobile-nav.is-open nav {
     display: block;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    padding-right: 0.5rem;
   }
 
   .panel-left {
@@ -1427,6 +1496,8 @@
     order: 1;
     flex: 1 1 100%;
     min-height: 220px;
+    min-width: 0;
+    width: 100%;
   }
 
   .portfolio-summary-text {

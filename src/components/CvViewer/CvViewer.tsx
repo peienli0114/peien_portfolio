@@ -46,15 +46,13 @@ const CvViewer: React.FC<CvViewerProps> = ({
     }
   };
 
-  const downloadHref = settings.downloadUrl ?? settings.link ?? null;
-
   return (
     <section className="cv-section">
       <header className="cv-header">
         <div className="cv-header-info">
-          <h2 className="cv-title">Curriculum Vitae</h2>
+          <h2 className="cv-title">CV</h2>
           <p className="cv-subtitle">
-            精選教育、專案與工作經歷，展示跨領域設計研究與數據分析的成果。
+            {/* 精選教育、專案與工作經歷，展示跨領域設計研究與數據分析的成果。 */}
           </p>
           {settings.link && (
             <a

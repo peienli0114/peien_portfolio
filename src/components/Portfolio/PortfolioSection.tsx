@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { PortfolioCode, PortfolioItem, WorkImages } from '../../types/portfolio';
 import {
   embedYouTube,
@@ -57,6 +57,22 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
   );
   const links = detail.links ?? [];
   const coWorkers = detail.coWorkers ?? [];
+
+  const handleScrollToBottom = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const detailsEl = document.getElementById(
+      `portfolio-${item.code}-details`,
+    );
+    if (!detailsEl) {
+      return;
+    }
+    const bottom =
+      detailsEl.getBoundingClientRect().bottom + window.scrollY;
+    const target = Math.max(bottom - window.innerHeight + 16, 0);
+    window.scrollTo({ top: target, behavior: 'smooth' });
+  }, [item.code]);
 
   return (
     <section
@@ -132,20 +148,49 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
               <div className="portfolio-detail-banner-actions">
                 <button
                   type="button"
+                  onClick={handleScrollToBottom}
+                >
+                  到底部
+                </button>
+                <button
+                  type="button"
                   onClick={() => onScrollToTop(item.code)}
                 >
-                  ⌅
+                  回到頂部
                 </button>
                 <button
                   type="button"
                   className="is-danger"
                   onClick={() => onToggle(item.code)}
                 >
-                  X
+                  收合
                 </button>
               </div>
             </div>
           </div>
+          {links.length > 0 && (
+            <div className="portfolio-meta-block">
+              <h4 className="portfolio-meta-title">相關連結</h4>
+              <ul className="portfolio-meta-list">
+                {links.map((item, index) => (
+                  <li key={`link-${index}`}>
+                    {item.link ? (
+                      <a
+                        href={item.link}
+                        className="portfolio-meta-link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {item.name || item.link}
+                      </a>
+                    ) : (
+                      item.name || item.link
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {detail.introList && detail.introList.length > 0 && (
             <ul className="portfolio-detail-list">
               {detail.introList.map((entry, index) => (
@@ -216,33 +261,10 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
                       </a>
                     )}
                   </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {links.length > 0 && (
-            <div className="portfolio-meta-block">
-              <h4 className="portfolio-meta-title">相關連結</h4>
-              <ul className="portfolio-meta-list">
-                {links.map((item, index) => (
-                  <li key={`link-${index}`}>
-                    {item.link ? (
-                      <a
-                        href={item.link}
-                        className="portfolio-meta-link"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {item.name || item.link}
-                      </a>
-                    ) : (
-                      item.name || item.link
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                  ))}
+                </ul>
+              </div>
+            )}
         </div>
       )}
     </section>

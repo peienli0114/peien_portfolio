@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react';
 import portfolioMap from '../work_list/portfolioMap.json';
 import portfolioRoutes from '../work_list/portfolioRoutes.json';
 import workDetails from '../work_list/allWorkData.json';
-import defaultCvPdf from '../asset/cv/cv-ch1018.pdf';
 import {
   PortfolioCategory,
   PortfolioCategoryWithMatrix,
@@ -21,7 +20,6 @@ import {
 
 const ROUTE_CONFIG = portfolioRoutes as PortfolioRouteConfig;
 const DEFAULT_ROUTE_ENTRY: PortfolioRouteEntry = ROUTE_CONFIG.default ?? {};
-const DEFAULT_CV_KEY = 'cv-ch1018.pdf';
 const CV_CONTEXT = require.context('../asset/cv', false, /\.pdf$/);
 const CV_ASSETS: Record<string, string> = CV_CONTEXT.keys().reduce(
   (acc, key) => {
@@ -31,10 +29,6 @@ const CV_ASSETS: Record<string, string> = CV_CONTEXT.keys().reduce(
   },
   {} as Record<string, string>,
 );
-
-if (!CV_ASSETS[DEFAULT_CV_KEY]) {
-  CV_ASSETS[DEFAULT_CV_KEY] = defaultCvPdf;
-}
 
 const workDetailMap = workDetails as Record<string, WorkDetail>;
 
@@ -135,7 +129,10 @@ const normaliseGroupList = (groups?: string[] | null): string[] | null => {
 };
 
 export const usePortfolioData = (routeKey: string) => {
-  const currentEntry = ROUTE_CONFIG[routeKey] ?? {};
+  const currentEntry = useMemo<PortfolioRouteEntry>(
+    () => ROUTE_CONFIG[routeKey] ?? {},
+    [routeKey],
+  );
   const defaultCvConfig = useMemo(
     () => normaliseCvRoute(DEFAULT_ROUTE_ENTRY.cv),
     [],
@@ -216,24 +213,23 @@ export const usePortfolioData = (routeKey: string) => {
     return start || end || '';
   }, []);
 
-  const cvSettings = useMemo<CvSettings>(() => {
-    const currentConfig = normaliseCvRoute(currentEntry.cv);
+const cvSettings = useMemo<CvSettings>(() => {
+  const currentConfig = normaliseCvRoute(currentEntry.cv);
 
-    const resolvedAssetKey =
-      currentConfig.asset ??
-      defaultCvConfig.asset ??
-      (typeof DEFAULT_ROUTE_ENTRY.cv === 'string'
-        ? DEFAULT_ROUTE_ENTRY.cv
-        : DEFAULT_CV_KEY) ??
-      DEFAULT_CV_KEY;
+  const resolvedAssetKey =
+    currentConfig.asset ??
+    defaultCvConfig.asset ??
+    (typeof DEFAULT_ROUTE_ENTRY.cv === 'string'
+      ? DEFAULT_ROUTE_ENTRY.cv
+      : undefined);
 
-    const downloadUrl =
-      resolvedAssetKey && CV_ASSETS[resolvedAssetKey]
-        ? CV_ASSETS[resolvedAssetKey]
-        : CV_ASSETS[DEFAULT_CV_KEY] ?? null;
+  const downloadUrl =
+    resolvedAssetKey && CV_ASSETS[resolvedAssetKey]
+      ? CV_ASSETS[resolvedAssetKey]
+      : null;
 
-    const resolvedLink =
-      currentConfig.link ?? defaultCvConfig.link ?? null;
+  const resolvedLink =
+    currentConfig.link ?? defaultCvConfig.link ?? null;
 
     const resolvedGroups =
       normaliseGroupList(currentConfig.groups) ??

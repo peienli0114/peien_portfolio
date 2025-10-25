@@ -144,6 +144,29 @@ const Main: React.FC = () => {
     [scrollToElement],
   );
 
+  const scrollToPortfolioBottom = useCallback(
+    (code: PortfolioCode) => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      const detailsEl = document.getElementById(
+        `portfolio-${code}-details`,
+      );
+      if (!detailsEl) {
+        return;
+      }
+      const offset = getScrollOffset();
+      const rect = detailsEl.getBoundingClientRect();
+      const bottom =
+        rect.bottom + window.scrollY - window.innerHeight + offset + 24;
+      window.scrollTo({
+        top: Math.max(bottom, 0),
+        behavior: 'smooth',
+      });
+    },
+    [getScrollOffset],
+  );
+
   const toggleCategoryCollapse = useCallback((categoryName: string) => {
     setExpandedCategories((prev) =>
       prev.includes(categoryName)
@@ -269,13 +292,42 @@ const Main: React.FC = () => {
     );
   }, [portfolioItems]);
 
-  const toggleWork = useCallback((code: PortfolioCode) => {
-    setExpandedWorks((prev) =>
-      prev.includes(code)
-        ? prev.filter((item) => item !== code)
-        : [...prev, code],
-    );
-  }, []);
+  const scrollSummaryIntoView = useCallback(
+    (code: PortfolioCode) => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      const summaryEl = document.getElementById(
+        `portfolio-${code}-summary`,
+      );
+      if (!summaryEl) {
+        return;
+      }
+      const offset = getScrollOffset();
+      const rect = summaryEl.getBoundingClientRect();
+      const top = rect.top + window.scrollY - offset - 16;
+      window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+    },
+    [getScrollOffset],
+  );
+
+  const toggleWork = useCallback(
+    (code: PortfolioCode) => {
+      setExpandedWorks((prev) => {
+        const willCollapse = prev.includes(code);
+        const next = willCollapse
+          ? prev.filter((item) => item !== code)
+          : [...prev, code];
+        if (willCollapse) {
+          requestAnimationFrame(() => {
+            scrollSummaryIntoView(code);
+          });
+        }
+        return next;
+      });
+    },
+    [scrollSummaryIntoView],
+  );
 
 
   usePortfolioScrollSpy({
@@ -338,11 +390,15 @@ const Main: React.FC = () => {
       const detailsRect = detailsEl.getBoundingClientRect();
       const detailsBottom = detailsRect.bottom + window.scrollY;
       const floatingTop = window.scrollY + top;
-      const stopThreshold = detailsBottom - bannerRect.height - 12;
+      const rawStopThreshold = detailsBottom - bannerRect.height - 12;
+      const minStopThreshold = summaryBottom + 8;
+      const stopThreshold = Math.max(rawStopThreshold, minStopThreshold);
+      const bottomLimit = detailsBottom - 12;
 
       const shouldFloat =
         window.scrollY + offset + 40 > summaryBottom &&
-        floatingTop <= stopThreshold;
+        floatingTop <= stopThreshold &&
+        floatingTop < bottomLimit;
 
       if (!shouldFloat) {
         setFloatingBannerState((previous) => (previous ? null : previous));
@@ -497,17 +553,25 @@ const Main: React.FC = () => {
               <button
                 type="button"
                 onClick={() =>
+                  scrollToPortfolioBottom(floatingBannerState.code)
+                }
+              >
+                到底部
+              </button>
+              <button
+                type="button"
+                onClick={() =>
                   scrollToPortfolioSection(floatingBannerState.code)
                 }
               >
-                ⌅
+                回到頂部
               </button>
               <button
                 type="button"
                 className="is-danger"
                 onClick={() => toggleWork(floatingBannerState.code)}
               >
-                X
+                收合
               </button>
             </div>
           </div>,
