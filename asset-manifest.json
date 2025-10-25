@@ -1,13 +1,12 @@
 {
   "files": {
-    "main.css": "/peien_portfolio/static/css/main.ef5e0fa0.css",
-    "main.js": "/peien_portfolio/static/js/main.eb14ad24.js",
+    "main.css": "/peien_portfolio/static/css/main.b52d55b6.css",
+    "main.js": "/peien_portfolio/static/js/main.6aafb342.js",
     "static/js/453.c3db55c9.chunk.js": "/peien_portfolio/static/js/453.c3db55c9.chunk.js",
     "static/media/headPic.gif": "/peien_portfolio/static/media/headPic.bd931fe1d3113788a5d5.gif",
     "static/media/headPic.png": "/peien_portfolio/static/media/headPic.90495ed1e5ba790d3586.png",
     "static/media/5.jpg": "/peien_portfolio/static/media/5.c4779e250b0a0bdfd91d.jpg",
     "static/media/2.jpg": "/peien_portfolio/static/media/2.e34897be08a32238be3c.jpg",
-    "static/media/cv-ch1018.pdf": "/peien_portfolio/static/media/cv-ch1018.48adebf5157b79da6529.pdf",
     "static/media/4.jpg": "/peien_portfolio/static/media/4.4ca6e3148f37b1cc099e.jpg",
     "static/media/期末簡報_TeamA 都市數據2_頁面_003.jpg": "/peien_portfolio/static/media/期末簡報_TeamA 都市數據2_頁面_003.7237ac867f5468f02dcd.jpg",
     "static/media/期末簡報_TeamA 都市數據2_頁面_027.jpg": "/peien_portfolio/static/media/期末簡報_TeamA 都市數據2_頁面_027.9ac0271f1abaa398ce9b.jpg",
@@ -120,12 +119,12 @@
     "static/media/UROP_Final_presentation_李佩恩_頁面_21.jpg": "/peien_portfolio/static/media/UROP_Final_presentation_李佩恩_頁面_21.b52b5eb1277b81ea4612.jpg",
     "static/media/UROP_Final_presentation_李佩恩_頁面_10.jpg": "/peien_portfolio/static/media/UROP_Final_presentation_李佩恩_頁面_10.85189279062ebcc70e07.jpg",
     "index.html": "/peien_portfolio/index.html",
-    "main.ef5e0fa0.css.map": "/peien_portfolio/static/css/main.ef5e0fa0.css.map",
-    "main.eb14ad24.js.map": "/peien_portfolio/static/js/main.eb14ad24.js.map",
+    "main.b52d55b6.css.map": "/peien_portfolio/static/css/main.b52d55b6.css.map",
+    "main.6aafb342.js.map": "/peien_portfolio/static/js/main.6aafb342.js.map",
     "453.c3db55c9.chunk.js.map": "/peien_portfolio/static/js/453.c3db55c9.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.ef5e0fa0.css",
-    "static/js/main.eb14ad24.js"
+    "static/css/main.b52d55b6.css",
+    "static/js/main.6aafb342.js"
   ]
 }
