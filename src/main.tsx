@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import './main.css';
 import Layout from './components/Layout/Layout';
 import Sidebar from './components/Sidebar/Sidebar';
@@ -18,6 +19,14 @@ import { usePortfolioData } from './hooks/usePortfolioData';
 import { usePortfolioScrollSpy } from './hooks/usePortfolioScrollSpy';
 import { useExperienceData } from './hooks/useExperienceData';
 
+type FloatingBannerState = {
+  code: PortfolioCode;
+  title: string;
+  left: number;
+  width: number;
+  top: number;
+};
+
 const Main: React.FC = () => {
   const [selectedContent, setSelectedContent] = useState<ContentKey>('home');
   const [activePortfolio, setActivePortfolio] =
@@ -26,6 +35,8 @@ const Main: React.FC = () => {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [floatingBannerState, setFloatingBannerState] =
+    useState<FloatingBannerState | null>(null);
   const homeSectionRef = useRef<HTMLDivElement | null>(null);
   const cvSectionRef = useRef<HTMLDivElement | null>(null);
   const overviewRef = useRef<HTMLDivElement | null>(null);
@@ -122,6 +133,17 @@ const Main: React.FC = () => {
     [getScrollOffset],
   );
 
+  const scrollToPortfolioSection = useCallback(
+    (code: PortfolioCode | undefined) => {
+      if (!code) {
+        return;
+      }
+      const section = document.getElementById(`portfolio-${code}`);
+      scrollToElement(section);
+    },
+    [scrollToElement],
+  );
+
   const toggleCategoryCollapse = useCallback((categoryName: string) => {
     setExpandedCategories((prev) =>
       prev.includes(categoryName)
@@ -171,16 +193,7 @@ const Main: React.FC = () => {
       requestAnimationFrame(() => {
         const targetCode = code ?? portfolioItems[0]?.code;
         if (code && targetCode) {
-          const section = document.getElementById(`portfolio-${targetCode}`);
-          if (section && typeof window !== 'undefined') {
-            const offset = getScrollOffset();
-            const position =
-              section.getBoundingClientRect().top +
-              window.scrollY -
-              offset -
-              8;
-            window.scrollTo({ top: position, behavior: 'smooth' });
-          }
+          scrollToPortfolioSection(targetCode);
           return;
         }
 
@@ -201,6 +214,7 @@ const Main: React.FC = () => {
       closeNavOnMobile,
       getScrollOffset,
       portfolioItems,
+      scrollToPortfolioSection,
       updateExpandedCategories,
     ],
   );
@@ -220,7 +234,11 @@ const Main: React.FC = () => {
         scrollToElement(cvSectionRef.current);
       }
     },
-    [closeNavOnMobile, handlePortfolioNavClick, scrollToElement],
+    [
+      closeNavOnMobile,
+      handlePortfolioNavClick,
+      scrollToElement,
+    ],
   );
 
   useEffect(() => {
@@ -269,6 +287,139 @@ const Main: React.FC = () => {
     updateExpandedCategories,
     isMobileNavOpen,
   });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const activeCode = activePortfolio;
+    if (!activeCode || !expandedWorks.includes(activeCode)) {
+      setFloatingBannerState(null);
+      return;
+    }
+
+    const activeItem = portfolioItems.find(
+      (entry) => entry.code === activeCode,
+    );
+    if (!activeItem) {
+      setFloatingBannerState(null);
+      return;
+    }
+
+    const summaryEl = document.getElementById(
+      `portfolio-${activeCode}-summary`,
+    );
+    const detailsEl = document.getElementById(
+      `portfolio-${activeCode}-details`,
+    );
+    const bannerEl =
+      detailsEl?.querySelector<HTMLDivElement>('.portfolio-detail-banner') ??
+      null;
+
+    if (!summaryEl || !detailsEl || !bannerEl) {
+      setFloatingBannerState(null);
+      return;
+    }
+
+    const title =
+      activeItem.detail.fullName ||
+      activeItem.detail.tableName ||
+      activeItem.name;
+
+    let rafId: number | null = null;
+
+    const update = () => {
+      const offset = getScrollOffset();
+      const top = offset + 20;
+      const summaryBottom =
+        summaryEl.getBoundingClientRect().bottom + window.scrollY;
+      const bannerRect = bannerEl.getBoundingClientRect();
+      const detailsRect = detailsEl.getBoundingClientRect();
+      const detailsBottom = detailsRect.bottom + window.scrollY;
+      const floatingTop = window.scrollY + top;
+      const stopThreshold = detailsBottom - bannerRect.height - 12;
+
+      const shouldFloat =
+        window.scrollY + offset + 40 > summaryBottom &&
+        floatingTop <= stopThreshold;
+
+      if (!shouldFloat) {
+        setFloatingBannerState((previous) => (previous ? null : previous));
+        return;
+      }
+
+      const safeMargin = 16;
+      let left = bannerRect.left;
+      let width = bannerRect.width;
+
+      if (left < safeMargin) {
+        const delta = safeMargin - left;
+        left = safeMargin;
+        width = Math.max(width - delta, 280);
+      }
+
+      let overflowRight = left + width + safeMargin - window.innerWidth;
+      if (overflowRight > 0) {
+        const shift = Math.min(overflowRight, left - safeMargin);
+        if (shift > 0) {
+          left -= shift;
+          overflowRight -= shift;
+        }
+        if (overflowRight > 0) {
+          width = Math.max(width - overflowRight, 280);
+        }
+      }
+
+      let availableWidth = window.innerWidth - left - safeMargin;
+      if (availableWidth <= 0) {
+        left = safeMargin;
+        availableWidth = Math.max(window.innerWidth - safeMargin * 2, 0);
+      }
+      width = Math.min(width, availableWidth);
+
+      const nextState: FloatingBannerState = {
+        code: activeCode,
+        title,
+        left,
+        width,
+        top,
+      };
+
+      setFloatingBannerState((previous) => {
+        if (
+          previous &&
+          previous.code === nextState.code &&
+          previous.title === nextState.title &&
+          Math.abs(previous.left - nextState.left) < 0.5 &&
+          Math.abs(previous.width - nextState.width) < 0.5 &&
+          Math.abs(previous.top - nextState.top) < 0.5
+        ) {
+          return previous;
+        }
+        return nextState;
+      });
+    };
+
+    const handle = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', handle, { passive: true });
+    window.addEventListener('resize', handle);
+
+    return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener('scroll', handle);
+      window.removeEventListener('resize', handle);
+    };
+  }, [activePortfolio, expandedWorks, getScrollOffset, portfolioItems]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -328,6 +479,42 @@ const Main: React.FC = () => {
     ],
   );
 
+  const floatingBannerPortal =
+    floatingBannerState && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            className="portfolio-detail-banner portfolio-detail-banner-floating"
+            style={{
+              top: `${floatingBannerState.top}px`,
+              left: `${floatingBannerState.left}px`,
+              width: `${floatingBannerState.width}px`,
+            }}
+          >
+            <div className="portfolio-detail-banner-info">
+              <strong>{floatingBannerState.title}</strong>
+            </div>
+            <div className="portfolio-detail-banner-actions">
+              <button
+                type="button"
+                onClick={() =>
+                  scrollToPortfolioSection(floatingBannerState.code)
+                }
+              >
+                ⌅
+              </button>
+              <button
+                type="button"
+                className="is-danger"
+                onClick={() => toggleWork(floatingBannerState.code)}
+              >
+                X
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <Layout
       sidebar={
@@ -350,6 +537,7 @@ const Main: React.FC = () => {
       }
       mobileTitle="PEI EN LI"
     >
+      {floatingBannerPortal}
       <div className="page-sections">
         <section
           className="page-section"
@@ -384,6 +572,7 @@ const Main: React.FC = () => {
             getYearRangeText={getYearRangeText}
             workImageMap={workImageMap}
             overviewRef={overviewRef}
+            floatingWorkCode={floatingBannerState?.code ?? null}
           />
         </section>
       </div>

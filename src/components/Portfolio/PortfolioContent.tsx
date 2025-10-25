@@ -17,6 +17,7 @@ type PortfolioContentProps = {
   getYearRangeText: (detail: WorkDetail) => string;
   workImageMap: Record<string, WorkImages>;
   overviewRef: React.RefObject<HTMLDivElement | null>;
+  floatingWorkCode: PortfolioCode | null;
 };
 
 const PortfolioContent: React.FC<PortfolioContentProps> = ({
@@ -28,6 +29,7 @@ const PortfolioContent: React.FC<PortfolioContentProps> = ({
   getYearRangeText,
   workImageMap,
   overviewRef,
+  floatingWorkCode,
 }) => {
   const handleScrollToTop = useCallback((code: PortfolioCode) => {
     const section = document.getElementById(`portfolio-${code}`);
@@ -72,6 +74,7 @@ const PortfolioContent: React.FC<PortfolioContentProps> = ({
                 item={item}
                 isActive={activePortfolio === item.code}
                 isExpanded={expandedWorks.includes(item.code)}
+                isFloating={floatingWorkCode === item.code}
                 onToggle={onToggleWork}
                 onScrollToTop={handleScrollToTop}
                 getYearRangeText={getYearRangeText}

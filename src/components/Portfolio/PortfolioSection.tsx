@@ -10,6 +10,7 @@ type PortfolioSectionProps = {
   item: PortfolioItem;
   isActive: boolean;
   isExpanded: boolean;
+  isFloating: boolean;
   onToggle: (code: PortfolioCode) => void;
   onScrollToTop: (code: PortfolioCode) => void;
   getYearRangeText: (detail: PortfolioItem['detail']) => string;
@@ -20,6 +21,7 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
   item,
   isActive,
   isExpanded,
+  isFloating,
   onToggle,
   onScrollToTop,
   getYearRangeText,
@@ -62,7 +64,10 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
       data-code={item.code}
       className={`portfolio-section${isActive ? ' is-active' : ''}`}
     >
-      <div className="portfolio-summary-block">
+      <div
+        className="portfolio-summary-block"
+        id={`portfolio-${item.code}-summary`}
+      >
         <div className="portfolio-preview">
           {previewUrl ? (
             <img src={previewUrl} alt={`${fullDisplayName} 主視覺`} />
@@ -110,27 +115,35 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
         </div>
       </div>
       {isExpanded && (
-        <div className="portfolio-details">
-          <div className="portfolio-detail-banner">
-            <span>
-              {fullDisplayName}
-              {detail.h2Name ? ` | ${detail.h2Name}` : ''}
-            </span>
-            <div className="portfolio-detail-actions">
-              <button
-                type="button"
-                className="portfolio-detail-close"
-                onClick={() => onScrollToTop(item.code)}
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                className="portfolio-detail-close"
-                onClick={() => onToggle(item.code)}
-              >
-                Ｘ
-              </button>
+        <div
+          className="portfolio-details"
+          id={`portfolio-${item.code}-details`}
+        >
+          <div className="portfolio-detail-sticky">
+            <div
+              className={`portfolio-detail-banner${
+                isFloating ? ' is-floating' : ''
+              }`}
+              aria-hidden={isFloating}
+            >
+              <div className="portfolio-detail-banner-info">
+                <strong>{fullDisplayName}</strong>
+              </div>
+              <div className="portfolio-detail-banner-actions">
+                <button
+                  type="button"
+                  onClick={() => onScrollToTop(item.code)}
+                >
+                  ⌅
+                </button>
+                <button
+                  type="button"
+                  className="is-danger"
+                  onClick={() => onToggle(item.code)}
+                >
+                  X
+                </button>
+              </div>
             </div>
           </div>
           {detail.introList && detail.introList.length > 0 && (
@@ -182,7 +195,7 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
           )}
           {coWorkers.length > 0 && (
             <div className="portfolio-meta-block">
-              <h4 className="portfolio-meta-title">協作夥伴</h4>
+              <h4 className="portfolio-meta-title">專案成員</h4>
               <ul className="portfolio-meta-list">
                 {coWorkers.map((person, index) => (
                   <li key={`coworker-${index}`}>

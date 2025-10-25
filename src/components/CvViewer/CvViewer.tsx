@@ -63,20 +63,10 @@ const CvViewer: React.FC<CvViewerProps> = ({
               rel="noopener noreferrer"
               className="cv-online-link"
             >
-              線上履歷（外部連結）
+              下載完整履歷（Google Drive）
             </a>
           )}
         </div>
-        {downloadHref && (
-          <a
-            href={downloadHref}
-            className="cv-action-button cv-action-button--compact"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            下載完整 CV
-          </a>
-        )}
       </header>
 
       <div className="cv-experience">
