@@ -1,18 +1,19 @@
 {
   "files": {
-    "main.css": "/peien_portfolio/static/css/main.d46af16a.css",
-    "main.js": "/peien_portfolio/static/js/main.3833b0fc.js",
+    "main.css": "/peien_portfolio/static/css/main.8600ae00.css",
+    "main.js": "/peien_portfolio/static/js/main.ac4b2db8.js",
     "static/js/453.c3db55c9.chunk.js": "/peien_portfolio/static/js/453.c3db55c9.chunk.js",
     "static/media/headPic.gif": "/peien_portfolio/static/media/headPic.bd931fe1d3113788a5d5.gif",
     "static/media/headPic.png": "/peien_portfolio/static/media/headPic.88239ad5907d13ebe80d.png",
-    "static/media/2.jpg": "/peien_portfolio/static/media/2.95c3c8f689be23e87d81.jpg",
-    "static/media/cv-ch1018.pdf": "/peien_portfolio/static/media/cv-ch1018.48adebf5157b79da6529.pdf",
-    "static/media/4.jpg": "/peien_portfolio/static/media/4.6565ab8af12df9a6a8dd.jpg",
     "static/media/5.jpg": "/peien_portfolio/static/media/5.dc4104a6f9e9035121ab.jpg",
+    "static/media/2.jpg": "/peien_portfolio/static/media/2.e34897be08a32238be3c.jpg",
+    "static/media/cv-ch1018.pdf": "/peien_portfolio/static/media/cv-ch1018.48adebf5157b79da6529.pdf",
+    "static/media/4.jpg": "/peien_portfolio/static/media/4.4ca6e3148f37b1cc099e.jpg",
     "static/media/6.jpg": "/peien_portfolio/static/media/6.db63cb453597f2d19946.jpg",
-    "static/media/1.jpg": "/peien_portfolio/static/media/1.5d100e68f6daf7b9599b.jpg",
-    "static/media/3.jpg": "/peien_portfolio/static/media/3.8a84be36e1b67432e724.jpg",
+    "static/media/1.jpg": "/peien_portfolio/static/media/1.561f977b8dead203c946.jpg",
+    "static/media/3.jpg": "/peien_portfolio/static/media/3.f8075f3009eb7684428b.jpg",
     "static/media/7.jpg": "/peien_portfolio/static/media/7.c5184c32b5195644ce90.jpg",
+    "static/media/headPic.jpg": "/peien_portfolio/static/media/headPic.a6c0f5c47e6c33022811.jpg",
     "static/media/01UROP_Midterm250506_李佩恩_頁面_03.jpg": "/peien_portfolio/static/media/01UROP_Midterm250506_李佩恩_頁面_03.2e549b05f3fd0013988c.jpg",
     "static/media/1.png": "/peien_portfolio/static/media/1.74cee78a14430fac7384.png",
     "static/media/01UROP_Midterm250506_李佩恩_頁面_19.jpg": "/peien_portfolio/static/media/01UROP_Midterm250506_李佩恩_頁面_19.e6aee37db73a8fe9377e.jpg",
@@ -33,7 +34,6 @@
     "static/media/作品集public_頁面_21.jpg": "/peien_portfolio/static/media/作品集public_頁面_21.bd443e0c6c2fab7e35bb.jpg",
     "static/media/01UROP_Midterm250506_李佩恩_頁面_08.jpg": "/peien_portfolio/static/media/01UROP_Midterm250506_李佩恩_頁面_08.7a8e65ee6b0e96380ecb.jpg",
     "static/media/作品集public_頁面_22.jpg": "/peien_portfolio/static/media/作品集public_頁面_22.0f7f29eeb81843d08fce.jpg",
-    "static/media/headPic.jpg": "/peien_portfolio/static/media/headPic.a6c0f5c47e6c33022811.jpg",
     "static/media/01UROP_Midterm250506_李佩恩_頁面_12.jpg": "/peien_portfolio/static/media/01UROP_Midterm250506_李佩恩_頁面_12.113a565b829936126111.jpg",
     "static/media/3.png": "/peien_portfolio/static/media/3.3140ac64fc687583d994.png",
     "static/media/01UROP_Midterm250506_李佩恩_頁面_17.jpg": "/peien_portfolio/static/media/01UROP_Midterm250506_李佩恩_頁面_17.0e86f3ac74538eb59469.jpg",
@@ -71,12 +71,12 @@
     "static/media/UROP_Final_presentation_李佩恩_頁面_21.jpg": "/peien_portfolio/static/media/UROP_Final_presentation_李佩恩_頁面_21.b52b5eb1277b81ea4612.jpg",
     "static/media/UROP_Final_presentation_李佩恩_頁面_10.jpg": "/peien_portfolio/static/media/UROP_Final_presentation_李佩恩_頁面_10.85189279062ebcc70e07.jpg",
     "index.html": "/peien_portfolio/index.html",
-    "main.d46af16a.css.map": "/peien_portfolio/static/css/main.d46af16a.css.map",
-    "main.3833b0fc.js.map": "/peien_portfolio/static/js/main.3833b0fc.js.map",
+    "main.8600ae00.css.map": "/peien_portfolio/static/css/main.8600ae00.css.map",
+    "main.ac4b2db8.js.map": "/peien_portfolio/static/js/main.ac4b2db8.js.map",
     "453.c3db55c9.chunk.js.map": "/peien_portfolio/static/js/453.c3db55c9.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.d46af16a.css",
-    "static/js/main.3833b0fc.js"
+    "static/css/main.8600ae00.css",
+    "static/js/main.ac4b2db8.js"
   ]
 }
