@@ -1,4 +1,9 @@
-import React, { useCallback, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { PortfolioCode, PortfolioItem, WorkImages } from '../../types/portfolio';
 import {
   embedYouTube,
@@ -57,6 +62,41 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
   );
   const links = detail.links ?? [];
   const coWorkers = detail.coWorkers ?? [];
+
+  const computePdfEmbedSupport = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return true;
+    }
+    const ua =
+      typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    const isMobileUa = /Android|webOS|iPhone|iPad|iPod|Mobile/i.test(ua);
+    const prefersCompactViewport =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia('(max-width: 768px)').matches
+        : window.innerWidth <= 768;
+    return !(isMobileUa || prefersCompactViewport);
+  }, []);
+
+  const [supportsInlinePdf, setSupportsInlinePdf] = useState(() =>
+    computePdfEmbedSupport(),
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const media = window.matchMedia('(max-width: 768px)');
+    const handleChange = () => {
+      setSupportsInlinePdf(computePdfEmbedSupport());
+    };
+    handleChange();
+    media.addEventListener('change', handleChange);
+    window.addEventListener('orientationchange', handleChange);
+    return () => {
+      media.removeEventListener('change', handleChange);
+      window.removeEventListener('orientationchange', handleChange);
+    };
+  }, [computePdfEmbedSupport]);
 
   const handleScrollToBottom = useCallback(() => {
     if (typeof window === 'undefined') {
@@ -200,32 +240,48 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
           )}
           {(galleryItems.length > 0 || videoUrls.length > 0) && (
             <div className="portfolio-gallery">
-              {galleryItems.map((galleryItem, index) =>
-                galleryItem.type === 'pdf' ? (
-                  <object
-                    key={`pdf-${index}`}
-                    data={galleryItem.src}
-                    type="application/pdf"
-                    className="portfolio-preview-pdf"
-                    aria-label={`${fullDisplayName} PDF ${index + 1}`}
-                  >
-                    <a
-                      href={galleryItem.src}
-                      target="_blank"
-                      rel="noopener noreferrer"
+              {galleryItems.map((galleryItem, index) => {
+                if (galleryItem.type === 'pdf') {
+                  if (!supportsInlinePdf) {
+                    return (
+                      <a
+                        key={`pdf-link-${index}`}
+                        href={galleryItem.src}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="portfolio-pdf-link"
+                      >
+                        <span>查看 {fullDisplayName} PDF</span>
+                      </a>
+                    );
+                  }
+                  return (
+                    <object
+                      key={`pdf-${index}`}
+                      data={galleryItem.src}
+                      type="application/pdf"
+                      className="portfolio-preview-pdf"
+                      aria-label={`${fullDisplayName} PDF ${index + 1}`}
                     >
-                      下載 {fullDisplayName} PDF
-                    </a>
-                  </object>
-                ) : (
+                      <a
+                        href={galleryItem.src}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        下載 {fullDisplayName} PDF
+                      </a>
+                    </object>
+                  );
+                }
+                return (
                   <img
                     key={`img-${index}`}
                     src={galleryItem.src}
                     alt={`${fullDisplayName} 內容圖像 ${index + 1}`}
                     className="portfolio-gallery-image"
                   />
-                ),
-              )}
+                );
+              })}
               {videoUrls.map((video, index) => (
                 <iframe
                   key={`video-${index}`}

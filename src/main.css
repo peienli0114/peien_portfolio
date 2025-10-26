@@ -422,6 +422,41 @@
   outline: none;
 }
 
+.cv-contact {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.cv-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(2, 175, 153, 0.12);
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.cv-contact-item:hover,
+.cv-contact-item:focus-visible {
+  background: rgba(2, 175, 153, 0.2);
+  color: var(--color-text-strong);
+}
+
+.cv-contact-label {
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+}
+
+.cv-contact-value {
+  font-size: 0.82rem;
+}
+
 .cv-action-button {
   display: inline-flex;
   align-items: center;
@@ -452,7 +487,7 @@
 .cv-experience {
   display: flex;
   flex-direction: column;
-  gap: 2.25rem;
+  gap: 1.5rem;
 }
 
 .cv-experience-group {
@@ -475,13 +510,13 @@
 .cv-group-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .cv-entry {
   background: #ffffff;
   border-radius: 1rem;
-  padding: 1.5rem 1.75rem;
+  padding: 1rem 1rem;
   border: 1px solid rgba(147, 161, 162, 0.28);
   box-shadow: 0 8px 20px rgba(42, 31, 7, 0.06);
   display: flex;
@@ -502,6 +537,13 @@
   gap: 0.35rem;
 }
 
+.cv-entry-header-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
 .cv-entry-role-line {
   display: flex;
   flex-wrap: wrap;
@@ -518,7 +560,7 @@
 
 .cv-entry-organisation {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #0f8a61;
 }
@@ -553,26 +595,27 @@
 .cv-entry-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  border: none;
-  background: transparent;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border: 2px solid rgba(2, 175, 153, 0.35);
+  background: rgba(2, 175, 153, 0.1);
   color: var(--color-primary);
-  margin-left: 0.4rem;
-  padding: 0.2rem;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 0.85rem;
+  border-radius: 50%;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: color 0.2s ease-in-out;
+  transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out, background 0.2s ease-in-out;
 }
 
 .cv-entry-toggle:hover,
 .cv-entry-toggle:focus-visible {
   color: var(--color-text-strong);
+  border-color: var(--color-primary);
+  background: rgba(2, 175, 153, 0.18);
 }
 
 .cv-entry-toggle-icon {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   line-height: 1;
 }
 
@@ -582,10 +625,24 @@
   gap: 1rem;
   border-top: 1px dashed rgba(147, 161, 162, 0.4);
   padding-top: 1rem;
+  position: relative;
 }
 
 .cv-entry-details.is-expanded {
   display: flex;
+}
+
+.cv-entry-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cv-entry-details-related {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
 }
 
 .cv-entry-description ul {
@@ -627,7 +684,7 @@
   color: var(--color-primary-alt);
   border-radius: 999px;
   padding: 0.35rem 0.85rem;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
 }
@@ -1191,6 +1248,33 @@
   box-shadow: 0 12px 24px rgba(42, 31, 7, 0.18);
 }
 
+.portfolio-pdf-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 0.85rem;
+  border: 2px solid rgba(2, 175, 153, 0.28);
+  background: rgba(2, 175, 153, 0.08);
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.portfolio-pdf-link:hover,
+.portfolio-pdf-link:focus-visible {
+  background: rgba(2, 175, 153, 0.16);
+  border-color: var(--color-primary);
+  color: var(--color-text-strong);
+}
+
+.portfolio-pdf-link span::before {
+  content: '📄';
+  margin-right: 0.35rem;
+}
+
 .portfolio-video iframe {
   width: 100%;
   height: 320px;
@@ -1399,12 +1483,41 @@
 
   .cv-entry-toggle {
     margin-left: 0.2rem;
-    padding: 0.2rem;
+    width: 1.6rem;
+    height: 1.6rem;
   }
 
   .cv-entry-details {
     gap: 0.8rem;
   }
+
+  .portfolio-pdf-link {
+    width: 100%;
+  }
+
+  .cv-contact {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .cv-contact-item {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cv-entry-header-meta {
+    gap: 0.5rem;
+  }
+
+  .cv-entry-toggle {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .cv-entry-details-related {
+    gap: 0.6rem;
+  }
+
 
   .mobile-nav {
     display: block;

@@ -6,6 +6,24 @@ import {
   WorkDetail,
 } from '../../types/portfolio';
 
+const CONTACT_LINKS: Array<{ label: string; value: string; href: string }> = [
+  {
+    label: 'Email',
+    value: 'peien.li0114@gmail.com',
+    href: 'mailto:peien.li0114@gmail.com',
+  },
+  {
+    label: 'LinkedIn',
+    value: '',
+    href: 'https://www.linkedin.com/in/383415171',
+  },
+  {
+    label: 'LeetCode',
+    value: '',
+    href: 'https://leetcode.com/u/piaopiaoen/',
+  },
+];
+
 type CvViewerProps = {
   settings: CvSettings;
   experienceGroups: ExperienceGroup[];
@@ -202,6 +220,22 @@ const CvViewer: React.FC<CvViewerProps> = ({
               下載完整履歷（Google Drive）
             </a>
           )}
+          {CONTACT_LINKS.length > 0 && (
+            <div className="cv-contact">
+              {CONTACT_LINKS.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="cv-contact-item"
+                  target={item.href.startsWith('http') ? '_blank' : undefined}
+                  rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                >
+                  <span className="cv-contact-label">{item.label}</span>
+                  <span className="cv-contact-value">{item.value}</span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
@@ -249,6 +283,13 @@ const CvViewer: React.FC<CvViewerProps> = ({
                               ))}
                             </div>
                           )}
+                        </div>
+                      </div>
+                      {(period || isExpandable) && (
+                        <div className="cv-entry-header-meta">
+                          {period && (
+                            <span className="cv-entry-period">{period}</span>
+                          )}
                           {isExpandable && (
                             <button
                               type="button"
@@ -264,12 +305,9 @@ const CvViewer: React.FC<CvViewerProps> = ({
                             </button>
                           )}
                         </div>
-                      </div>
-                      {period && (
-                        <span className="cv-entry-period">{period}</span>
                       )}
                     </header>
-                    {hasRelatedWorks && (
+                    {!isExpanded && hasRelatedWorks && (
                       <div className="cv-entry-related">
                         <span className="cv-related-label">相關作品：</span>
                         <div className="cv-related-list">
@@ -293,19 +331,47 @@ const CvViewer: React.FC<CvViewerProps> = ({
                         </div>
                       </div>
                     )}
-                    {paragraphs.length > 0 && (
+                    {(paragraphs.length > 0 || isExpandable) && (
                       <div
                         className={`cv-entry-details${isExpanded ? ' is-expanded' : ''}`}
                         id={`${entryId}-details`}
                         aria-hidden={!isExpanded}
                       >
-                        <div className="cv-entry-description">
-                          <ul>
-                            {paragraphs.map((paragraph, paragraphIndex) => (
-                              <li key={paragraphIndex}>{paragraph}</li>
-                            ))}
-                          </ul>
+                        <div className="cv-entry-details-body">
+                          {paragraphs.length > 0 && (
+                            <div className="cv-entry-description">
+                              <ul>
+                                {paragraphs.map((paragraph, paragraphIndex) => (
+                                  <li key={paragraphIndex}>{paragraph}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         </div>
+                        {hasRelatedWorks && (
+                          <div className="cv-entry-details-related">
+                            <span className="cv-related-label">相關作品：</span>
+                            <div className="cv-related-list">
+                              {item.relatedWorks.map((code) => {
+                                const detail = workDetailMap[code];
+                                const name =
+                                  detail?.tableName ||
+                                  detail?.fullName ||
+                                  code.toUpperCase();
+                                return (
+                                  <button
+                                    key={code}
+                                    type="button"
+                                    className="cv-related-chip"
+                                    onClick={() => handleWorkClick(code)}
+                                  >
+                                    {name}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </article>
