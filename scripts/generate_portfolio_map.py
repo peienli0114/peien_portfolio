@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Reads the work_list/porfolio_list.xlsx file and generates portfolioMap.json.
-Running this script ensures the React app always uses the latest Excel data.
+Generates portfolio JSON data from work_list/porfolio_list.xlsx.
+If the Excel file is unavailable, falls back to work_list/all_work_list.csv.
 """
 
 from __future__ import annotations
@@ -164,59 +164,58 @@ def normalize_multiline_text(value: str | None) -> str:
     return value.replace("\\n", "\n").replace("\r", "\n").strip()
 
 
-def generate_work_details(
-    csv_path: Path, mapping: Dict[str, str], output_path: Path
+def generate_work_details_from_rows(
+    rows: Iterable[Dict[str, str]],
+    mapping: Dict[str, str],
+    output_path: Path,
 ) -> None:
-    if not csv_path.exists():
-        print(f"No work list found at {csv_path}, skipping detail export.")
-        return
-
     details: Dict[str, Dict[str, object]] = {}
     unmatched: List[str] = []
 
-    with csv_path.open("r", encoding="utf-8-sig") as fh:
-        reader = csv.DictReader(fh)
-        for row in reader:
-            raw_code = (row.get("index") or "").strip().lower()
-            if raw_code in mapping:
-                code = raw_code
-            else:
-                raw_table_name = row.get("tableName", "")
-                lookup_key = normalise_text(raw_table_name) or normalise_text(
-                    row.get("fullName", "")
-                )
-                if not lookup_key:
-                    continue
-
-                code = next(
-                    (candidate for candidate, name in mapping.items()
-                     if normalise_text(name) == lookup_key),
-                    None,
-                )
-
-            if not code or code not in mapping:
-                raw_table_name = row.get("tableName", "")
-                unmatched.append(raw_table_name.strip() or raw_code)
+    for row in rows:
+        raw_code = (row.get("index") or "").strip().lower()
+        if raw_code in mapping:
+            code = raw_code
+        else:
+            raw_table_name = row.get("tableName", "")
+            lookup_key = normalise_text(raw_table_name) or normalise_text(
+                row.get("fullName", "")
+            )
+            if not lookup_key:
                 continue
 
-            def normalize_multiline(value: str | None) -> str:
-                text = (value or "").replace("\\n", "\n").strip()
-                return text
+            code = next(
+                (
+                    candidate
+                    for candidate, name in mapping.items()
+                    if normalise_text(name) == lookup_key
+                ),
+                None,
+            )
 
-            details[code] = {
-                "fullName": (row.get("fullName") or "").replace("\n", " ").strip(),
-                "h2Name": (row.get("h2Name") or "").replace("\n", " ").strip(),
-                "tableName": (row.get("tableName") or "").replace("\n", " ").strip(),
-                "yearBegin": (row.get("yearBegin") or "").strip(),
-                "yearEnd": (row.get("yearEnd") or "").strip(),
-                "intro": normalize_multiline(row.get("introd")),
-                "introList": parse_list_field(row.get("introd_list")),
-                "headPic": (row.get("headPic") or "").strip(),
-                "tags": parse_list_field(row.get("tag")),
-                "links": parse_object_list(row.get("link")),
-                "coWorkers": parse_object_list(row.get("coWorker")),
-                "content": row.get("content", "").strip(),
-            }
+        if not code or code not in mapping:
+            raw_table_name = row.get("tableName", "") or row.get("fullName", "")
+            unmatched.append((raw_table_name or raw_code).strip())
+            continue
+
+        def normalize_multiline(value: str | None) -> str:
+            text = (value or "").replace("\\n", "\n").strip()
+            return text
+
+        details[code] = {
+            "fullName": (row.get("fullName") or "").replace("\n", " ").strip(),
+            "h2Name": (row.get("h2Name") or "").replace("\n", " ").strip(),
+            "tableName": (row.get("tableName") or "").replace("\n", " ").strip(),
+            "yearBegin": (row.get("yearBegin") or "").strip(),
+            "yearEnd": (row.get("yearEnd") or "").strip(),
+            "intro": normalize_multiline(row.get("introd")),
+            "introList": parse_list_field(row.get("introd_list")),
+            "headPic": (row.get("headPic") or "").strip(),
+            "tags": parse_list_field(row.get("tag")),
+            "links": parse_object_list(row.get("link")),
+            "coWorkers": parse_object_list(row.get("coWorker")),
+            "content": (row.get("content") or "").strip(),
+        }
 
     output_path.write_text(
         json.dumps(details, ensure_ascii=False, indent=2) + "\n",
@@ -227,6 +226,71 @@ def generate_work_details(
         f"Generated {output_path} with {len(details)} entries."
         + (" Unmatched rows: " + ", ".join(unmatched) if unmatched else "")
     )
+
+
+def load_csv_rows(csv_path: Path) -> List[Dict[str, str]]:
+    if not csv_path.exists():
+        return []
+    rows: List[Dict[str, str]] = []
+    with csv_path.open("r", encoding="utf-8-sig") as fh:
+        reader = csv.DictReader(fh)
+        for row in reader:
+            if not any((value or "").strip() for value in row.values()):
+                continue
+            rows.append({key: (value or "") for key, value in row.items()})
+    return rows
+
+
+def load_excel_rows(excel_path: Path) -> List[Dict[str, str]]:
+    if not excel_path.exists():
+        return []
+
+    with excel_path.open("rb") as fh, zipfile.ZipFile(fh) as zf:
+        shared_strings = build_shared_strings(zf)
+        rows = list(read_sheet_rows(zf, shared_strings))
+
+    if not rows:
+        return []
+
+    headers = [(header or "").strip() for header in rows[0]]
+    if "index" not in headers:
+        raise SystemExit("找不到 index 欄位，請確認 Excel 表頭。")
+    records: List[Dict[str, str]] = []
+    for raw_row in rows[1:]:
+        if not any((cell or "").strip() for cell in raw_row):
+            continue
+        record: Dict[str, str] = {}
+        for idx, header in enumerate(headers):
+            if not header:
+                continue
+            value = raw_row[idx] if idx < len(raw_row) else ""
+            record[header] = value or ""
+        if record:
+            records.append(record)
+    return records
+
+
+def build_mapping_from_rows(rows: Iterable[Dict[str, str]]) -> Dict[str, str]:
+    mapping: Dict[str, str] = {}
+    for row in rows:
+        code = (row.get("index") or "").strip().lower()
+        if not code:
+            continue
+        candidates = [
+            row.get("tableName"),
+            row.get("fullName"),
+            row.get("h2Name"),
+        ]
+        name = next(
+            (
+                (candidate or "").replace("\n", " ").strip()
+                for candidate in candidates
+                if candidate and candidate.strip()
+            ),
+            "",
+        )
+        mapping[code] = name
+    return mapping
 
 
 def generate_experience_data(csv_path: Path, output_path: Path) -> None:
@@ -261,6 +325,7 @@ def generate_experience_data(csv_path: Path, output_path: Path) -> None:
             related_work = parse_related_codes(row.get("related_work"))
             description = normalize_multiline_text(row.get("introd"))
             show_default = parse_bool(row.get("show_default"))
+            tags = parse_list_field(row.get("tag"))
             show_groups = [
                 column.strip()
                 for column in show_columns
@@ -280,6 +345,7 @@ def generate_experience_data(csv_path: Path, output_path: Path) -> None:
                     "description": description,
                     "showDefault": show_default,
                     "showGroups": show_groups,
+                    "tags": tags,
                 }
             )
 
@@ -352,47 +418,16 @@ def read_sheet_rows(
         yield values
 
 
-def generate_map(excel_path: Path) -> Dict[str, str]:
-    with excel_path.open("rb") as fh, zipfile.ZipFile(fh) as zf:
-        shared_strings = build_shared_strings(zf)
-        rows = list(read_sheet_rows(zf, shared_strings))
+def generate_map(excel_path: Path) -> Tuple[Dict[str, str], List[Dict[str, str]]]:
+    rows = load_excel_rows(excel_path)
+    mapping = build_mapping_from_rows(rows)
+    return mapping, rows
 
-    if not rows:
-        return {}
 
-    headers = rows[0]
-    try:
-        index_idx = headers.index("index")
-    except ValueError:
-        raise SystemExit("找不到 index 欄位，請確認 Excel 表頭。")
-
-    name_candidates = ["tableName", "fullName", "h2Name"]
-    name_indices = []
-    for column in name_candidates:
-        try:
-            name_indices.append(headers.index(column))
-        except ValueError:
-            name_indices.append(None)
-
-    mapping: Dict[str, str] = {}
-    for row in rows[1:]:
-        if index_idx >= len(row):
-            continue
-        code = row[index_idx].strip()
-        if not code:
-            continue
-
-        name = ""
-        for idx in name_indices:
-            if idx is not None and idx < len(row):
-                candidate = (row[idx] or "").replace("\n", " ").strip()
-                if candidate:
-                    name = candidate
-                    break
-
-        mapping[code] = name
-
-    return mapping
+def generate_map_from_csv(csv_path: Path) -> Tuple[Dict[str, str], List[Dict[str, str]]]:
+    rows = load_csv_rows(csv_path)
+    mapping = build_mapping_from_rows(rows)
+    return mapping, rows
 
 
 def main(argv: list[str]) -> int:
@@ -410,10 +445,25 @@ def main(argv: list[str]) -> int:
     args = parser.parse_args(argv)
 
     excel_path = Path(args.excel)
-    if not excel_path.exists():
-        raise SystemExit(f"找不到 Excel 檔案：{excel_path}")
+    csv_path = excel_path.with_name("all_work_list.csv")
 
-    mapping = generate_map(excel_path)
+    mapping: Dict[str, str] = {}
+    detail_rows: List[Dict[str, str]] = []
+    if excel_path.exists():
+        mapping, detail_rows = generate_map(excel_path)
+    else:
+        print(f"找不到 Excel 檔案：{excel_path}，改用 CSV 來源 {csv_path}。")
+
+    if not mapping:
+        mapping, csv_rows = generate_map_from_csv(csv_path)
+        if not detail_rows:
+            detail_rows = csv_rows
+    elif not detail_rows:
+        # Excel 存在但資料表無內容，嘗試改用 CSV 行資料
+        detail_rows = load_csv_rows(csv_path)
+
+    if not mapping:
+        raise SystemExit("無法從 Excel 或 CSV 生成作品對照表，請確認來源資料。")
 
     output_path = Path(args.output)
     output_path.write_text(
@@ -422,9 +472,11 @@ def main(argv: list[str]) -> int:
 
     print(f"Generated {output_path} with {len(mapping)} entries.")
 
-    csv_path = excel_path.with_name("all_work_list.csv")
     work_output = Path("src/work_list/allWorkData.json")
-    generate_work_details(csv_path, mapping, work_output)
+    if detail_rows:
+        generate_work_details_from_rows(detail_rows, mapping, work_output)
+    else:
+        print("找不到可用的作品明細資料列，請確認來源檔案。")
 
     experience_csv = Path("src/asset/cv/experience.csv")
     experience_output = Path("src/work_list/experienceData.json")

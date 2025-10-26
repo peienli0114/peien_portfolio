@@ -1,15 +1,34 @@
 import { WorkDetail, WorkGalleryItem, WorkImages } from '../types/portfolio';
 
-const context = require.context(
-  '../asset/work',
-  true,
-  /\.(png|jpe?g|gif|svg|pdf)$/i,
-);
+const loadWorkContext = () => {
+  try {
+    return require.context(
+      '../asset/work',
+      true,
+      /\.(png|jpe?g|gif|svg|pdf)$/i,
+    );
+  } catch {
+    return null;
+  }
+};
+
+const context = loadWorkContext();
 
 export const WORK_IMAGE_MAP: Record<string, WorkImages> = (() => {
   const map: Record<string, WorkImages> = {};
+  if (!context) {
+    return map;
+  }
   context.keys().forEach((key) => {
-    const src = context(key) as string;
+    let src: string | null = null;
+    try {
+      src = context(key) as string;
+    } catch {
+      return;
+    }
+    if (!src) {
+      return;
+    }
     const normalized = key.replace('./', '');
     const [folder, file] = normalized.split('/');
     if (!folder || !file) {

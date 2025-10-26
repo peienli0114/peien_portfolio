@@ -1,25 +1,25 @@
-﻿type,organization/,role,begin_m,end_m,related_work,introd,show_default,show_design
-Education,國立台北科技大學-互動設計學系碩士班,,23-Feb,25-Aug,"[mc1,mc2,mc3]","論文研究：蒐集與分析都市街谷行人尺度的微氣候環境，設計熱舒適資訊視覺化圖符並實驗分析其可用性
+﻿type,organization/,role,begin_m,end_m,related_work,tag,introd,show_default,show_design
+Education,國立台北科技大學-互動設計學系碩士班,,23-Feb,25-Aug,"[mc1,mc2,mc3,mc4]","[""資訊視覺化"",""HCI"",""UX"",""數據分析與AI"",""城市熱環境"",""無障礙""]","論文研究：蒐集與分析都市街谷行人尺度的微氣候環境，設計熱舒適資訊視覺化圖符並實驗分析其可用性
 研究橫跨多領域，包含都市熱環境、層疊式觸覺形狀模擬與體驗、AI應用產品設計、空間與城市地理數據分析
 共發表5篇國際研討會論文與2篇國內研討會論文。
 計畫兼任助理：國教署委北科大建置校園無障礙環境指引與地圖，參與專家會議、工作坊並負責紀錄統整",TRUE,TRUE
-Education,國立台北教育大學-藝術與造形設計學士班-產品設計,,14-Sep,18-Jun,[id2],社團參與:電子玩具研究社-3D與電子零件創作、參與創客展覽並協辦工作坊帶領兒童動手實作,TRUE,TRUE
-Education,台北市立中山女子高級中學,,11-Sep,14-Jun,,,TRUE,TRUE
-Work Experience,SESN夏樹沐石,接案合作-設計研究,25-Jun,25-Oct,,主導品牌潛在客群研究，負責調查規劃、二階段問卷設計與訪談執行。,TRUE,TRUE
-Work Experience,川立開發實業公司 Demby Group,工業設計助理,18-Dec,22-Jun,[id1],"主導銀髮族穿鞋輔具從概念設計至量產，產品銷售至日本與歐洲。
+Education,國立台北教育大學-藝術與造形設計學士班-產品設計,,14-Sep,18-Jun,[id2],"[""工業設計"",""產品設計"",""教學"",""STEAM創客""]",社團參與:電子玩具研究社-3D與電子零件創作、參與創客展覽並協辦工作坊帶領兒童動手實作,TRUE,TRUE
+Education,台北市立中山女子高級中學,,11-Sep,14-Jun,,,,TRUE,TRUE
+Work Experience,SESN夏樹沐石,接案合作-設計研究,25-Jun,25-Oct,,"[""使用者研究"",""工業設計""]",主導品牌潛在客群研究，負責調查規劃、二階段問卷設計與訪談執行。,TRUE,TRUE
+Work Experience,川立開發實業公司 Demby Group,工業設計助理,18-Dec,22-Jun,[id1],"[""工業設計"",""量產管理"",""嬰幼老人安全"",""寵物"",""MDR""]","主導銀髮族穿鞋輔具從概念設計至量產，產品銷售至日本與歐洲。
 開發新產品並維護既有量產品項，機種數十項涵蓋老人輔具、嬰幼安全與寵物家具。
 執行新產品開發流程：競品分析、提案設計、打樣製作與量產導入。
 協調模具開模、工廠量產、建立作業指導書與檢驗標準。
 建立與維護ERP BOM 表，整理零件設計對應、執行 Debug 與修改，管理工讀生協助整理資料。
 推動拐杖產品符合歐盟醫療器材法規（MDR），追蹤台灣與歐美的嬰幼老人產品安全規範並辦理送測。",TRUE,TRUE
-Work Experience,亞拓醫療 Atom Health,產品設計實習,17-Feb,17-Jun,,協助新型尿袋研究設計,TRUE,TRUE
-Work Experience,MIT City Science Lab@Taipei Tech 北科大MIT城市科學實驗室 - Data&AI team,UROP(Intern)-前後端開發,25-Feb,25-Jun,"[mit1,mit2,mit3]","爬蟲12萬筆1999高雄通報並進行文本清理與機器學習並以LightRAG模組為基礎撰寫建構Prompt與建立合適需求的知識圖譜 與 RAG 
+Work Experience,亞拓醫療 Atom Health,產品設計實習,17-Feb,17-Jun,,"[""工業設計"",""醫療""]",協助新型尿袋研究設計,TRUE,TRUE
+Work Experience,MIT City Science Lab@Taipei Tech 北科大MIT城市科學實驗室 - Data&AI team,UROP(Intern)-前後端開發,25-Feb,25-Jun,"[mit1,mit2,mit3]","[""AI"",""RAG"",""知識圖譜"",""高雄1999""]","爬蟲12萬筆1999高雄通報並進行文本清理與機器學習並以LightRAG模組為基礎撰寫建構Prompt與建立合適需求的知識圖譜 與 RAG 
 通過六週培訓審核-版本套件管理與以React框架與api串接資料製作簡易數據儀表板",TRUE,
-Program / Workshop / Side Project ,Google Hardware Product Sprint Taiwan 2024 - Team 8 《多感官藝術體驗裝置 Vision Wave》,產品設計 / 機構設計,24-Jun,24-Sep,[mh2],"與4名跨校跨領域成員共同設計與製作供視障者觸覺與聽覺互動藝術體驗的AI系統原型
+Program / Workshop / Side Project ,Google Hardware Product Sprint Taiwan 2024 - Team 8 《多感官藝術體驗裝置 Vision Wave》,產品設計 / 機構設計,24-Jun,24-Sep,[mh2],"[""AI"",""機構"",""產品"",""無障礙""]","與4名跨校跨領域成員共同設計與製作供視障者觸覺與聽覺互動藝術體驗的AI系統原型
 於 Demo day 獲頒當年度最佳產品(第二名)、最具創意產品及社會公益產品獎項",TRUE,TRUE
-Program / Workshop / Side Project ,切片成形觸覺模擬裝置《Slices to Shape 》,PM / 機構設計 / UX研究,23-Jun,24-Jun,[mh1],"此為北科大互動所跨研究室專案-成員：李佩恩, 張峻維, 袁子晴/指導老師：韓秉軒
+Program / Workshop / Side Project ,切片成形觸覺模擬裝置《Slices to Shape 》,PM / 機構設計 / UX研究,23-Jun,24-Jun,[mh1],"[""HCI"",""機構"",""VR"",""IEEE""]","此為北科大互動所跨研究室專案-成員：李佩恩, 張峻維, 袁子晴/指導老師：韓秉軒
 設計一種基於層的觸覺變形機構，搭配VR視覺增加沉浸感，並設計人機實驗研究使用者觸覺體驗
 榮獲競賽獎項及多篇國內外研討會接受論文",TRUE,TRUE
-Program / Workshop / Side Project ,OpenHCI workshop 人機互動工作坊 2023 -《SoundFit》,產品設計,23-Jul,23-Aug,,"與7名跨校成員共同設計基於工作情緒感測的音樂推薦AI系統與製作原型
+Program / Workshop / Side Project ,OpenHCI workshop 人機互動工作坊 2023 -《SoundFit》,產品設計,23-Jul,23-Aug,,"[""HCI"",""AI"",""產品""]","與7名跨校成員共同設計基於工作情緒感測的音樂推薦AI系統與製作原型
 受邀於台灣人機互動研討會展出 (TAICHI ) 2023 Demo session",TRUE,TRUE
-Program / Workshop / Side Project ,財團法人商業發展研究院-商業大數據分析人才養成,數據分析,22-Nov,23-Jan,[da1],完成407小時專業研習課程，榮獲表現優異獎並取得相關證照，結業專題為「台灣廢棄物分析」,TRUE,TRUE
+Program / Workshop / Side Project ,財團法人商業發展研究院-商業大數據分析人才養成班,數據分析,22-Nov,23-Jan,[da1],"[""證照"",""永續""]",完成407小時專業研習課程，榮獲表現優異獎並取得相關證照，結業專題為「台灣廢棄物分析」,TRUE,TRUE

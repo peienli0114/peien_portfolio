@@ -76,6 +76,7 @@ export type ExperienceEntry = {
   description: string;
   showDefault: boolean;
   showGroups: string[];
+  tags?: string[];
 };
 
 export type ExperienceDataset = {

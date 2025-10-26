@@ -14,13 +14,22 @@
       "relatedWorks": [
         "mc1",
         "mc2",
-        "mc3"
+        "mc3",
+        "mc4"
       ],
       "description": "論文研究：蒐集與分析都市街谷行人尺度的微氣候環境，設計熱舒適資訊視覺化圖符並實驗分析其可用性\n研究橫跨多領域，包含都市熱環境、層疊式觸覺形狀模擬與體驗、AI應用產品設計、空間與城市地理數據分析\n共發表5篇國際研討會論文與2篇國內研討會論文。\n計畫兼任助理：國教署委北科大建置校園無障礙環境指引與地圖，參與專家會議、工作坊並負責紀錄統整",
       "showDefault": true,
       "showGroups": [
         "show_default",
         "show_design"
+      ],
+      "tags": [
+        "資訊視覺化",
+        "HCI",
+        "UX",
+        "數據分析與AI",
+        "城市熱環境",
+        "無障礙"
       ]
     },
     {
@@ -37,6 +46,12 @@
       "showGroups": [
         "show_default",
         "show_design"
+      ],
+      "tags": [
+        "工業設計",
+        "產品設計",
+        "教學",
+        "STEAM創客"
       ]
     },
     {
@@ -51,7 +66,8 @@
       "showGroups": [
         "show_default",
         "show_design"
-      ]
+      ],
+      "tags": []
     },
     {
       "type": "Work Experience",
@@ -65,6 +81,10 @@
       "showGroups": [
         "show_default",
         "show_design"
+      ],
+      "tags": [
+        "使用者研究",
+        "工業設計"
       ]
     },
     {
@@ -81,6 +101,13 @@
       "showGroups": [
         "show_default",
         "show_design"
+      ],
+      "tags": [
+        "工業設計",
+        "量產管理",
+        "嬰幼老人安全",
+        "寵物",
+        "MDR"
       ]
     },
     {
@@ -95,6 +122,10 @@
       "showGroups": [
         "show_default",
         "show_design"
+      ],
+      "tags": [
+        "工業設計",
+        "醫療"
       ]
     },
     {
@@ -112,6 +143,12 @@
       "showDefault": true,
       "showGroups": [
         "show_default"
+      ],
+      "tags": [
+        "AI",
+        "RAG",
+        "知識圖譜",
+        "高雄1999"
       ]
     },
     {
@@ -128,6 +165,12 @@
       "showGroups": [
         "show_default",
         "show_design"
+      ],
+      "tags": [
+        "AI",
+        "機構",
+        "產品",
+        "無障礙"
       ]
     },
     {
@@ -144,6 +187,12 @@
       "showGroups": [
         "show_default",
         "show_design"
+      ],
+      "tags": [
+        "HCI",
+        "機構",
+        "VR",
+        "IEEE"
       ]
     },
     {
@@ -158,11 +207,16 @@
       "showGroups": [
         "show_default",
         "show_design"
+      ],
+      "tags": [
+        "HCI",
+        "AI",
+        "產品"
       ]
     },
     {
       "type": "Program / Workshop / Side Project",
-      "organisation": "財團法人商業發展研究院-商業大數據分析人才養成",
+      "organisation": "財團法人商業發展研究院-商業大數據分析人才養成班",
       "role": "數據分析",
       "begin": "22-Nov",
       "end": "23-Jan",
@@ -174,6 +228,10 @@
       "showGroups": [
         "show_default",
         "show_design"
+      ],
+      "tags": [
+        "證照",
+        "永續"
       ]
     }
   ]

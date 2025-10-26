@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   CvSettings,
   ExperienceGroup,
@@ -13,26 +13,155 @@ type CvViewerProps = {
   onNavigateToWork?: (code: PortfolioCode) => void;
 };
 
-const formatRange = (begin: string, end: string): string => {
-  const beginTrimmed = begin?.trim();
-  const endTrimmed = end?.trim();
-  if (beginTrimmed && endTrimmed) {
-    if (beginTrimmed === endTrimmed) {
-      return beginTrimmed;
-    }
-    return `${beginTrimmed} – ${endTrimmed}`;
-  }
-  if (beginTrimmed) {
-    return `${beginTrimmed} – Present`;
-  }
-  return endTrimmed || '';
-};
-
 const splitDescription = (content: string): string[] =>
   content
     .split(/\n+/)
     .map((line) => line.trim())
     .filter(Boolean);
+
+const MONTH_MAP: Record<string, number> = {
+  jan: 1,
+  january: 1,
+  feb: 2,
+  february: 2,
+  mar: 3,
+  march: 3,
+  apr: 4,
+  april: 4,
+  may: 5,
+  jun: 6,
+  june: 6,
+  jul: 7,
+  july: 7,
+  aug: 8,
+  august: 8,
+  sep: 9,
+  sept: 9,
+  september: 9,
+  oct: 10,
+  october: 10,
+  nov: 11,
+  november: 11,
+  dec: 12,
+  december: 12,
+};
+
+const normaliseYear = (value: number): number => {
+  if (value < 100 && value > 0) {
+    return value >= 50 ? 1900 + value : 2000 + value;
+  }
+  return value;
+};
+
+const parseDateParts = (
+  raw: string,
+): { year: number; month: number | null } | null => {
+  if (!raw) {
+    return null;
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const cleaned = trimmed
+    .replace(/年/g, '/')
+    .replace(/月/g, '')
+    .replace(/\./g, '/')
+    .replace(/-/g, '/');
+  const tokens = cleaned.split(/[/\s]+/).filter(Boolean);
+  if (!tokens.length) {
+    return null;
+  }
+
+  let year: number | null = null;
+  let month: number | null = null;
+
+  tokens.forEach((token) => {
+    const lower = token.toLowerCase();
+    if (month === null && MONTH_MAP[lower]) {
+      month = MONTH_MAP[lower];
+      return;
+    }
+    const numeric = Number(token);
+    if (Number.isNaN(numeric)) {
+      return;
+    }
+    if (numeric > 31 || token.length > 2 || year === null) {
+      year = normaliseYear(numeric);
+      return;
+    }
+    if (month === null && numeric >= 1 && numeric <= 12) {
+      month = numeric;
+    }
+  });
+
+  if (year === null) {
+    const fallbackToken = tokens.find((token) => !Number.isNaN(Number(token)));
+    if (fallbackToken) {
+      year = normaliseYear(Number(fallbackToken));
+    }
+  }
+
+  if (month === null) {
+    const monthToken = tokens.find((token) =>
+      Boolean(MONTH_MAP[token.toLowerCase()]),
+    );
+    if (monthToken) {
+      month = MONTH_MAP[monthToken.toLowerCase()];
+    }
+  }
+
+  if (year === null) {
+    return null;
+  }
+
+  return {
+    year,
+    month: month ? Math.min(Math.max(month, 1), 12) : null,
+  };
+};
+
+const formatDate = (value: string): string => {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return '';
+  }
+  if (/^present$/i.test(trimmed)) {
+    return 'Present';
+  }
+  const parsed = parseDateParts(trimmed);
+  if (!parsed) {
+    return trimmed;
+  }
+  const { year, month } = parsed;
+  if (month) {
+    return `${year}/${month.toString().padStart(2, '0')}`;
+  }
+  return `${year}`;
+};
+
+const formatRange = (begin: string, end: string): string => {
+  const beginFormatted = formatDate(begin);
+  const endFormatted = formatDate(end);
+
+  const hasBegin = Boolean(beginFormatted);
+  const hasEnd = Boolean(endFormatted);
+
+  if (hasBegin && hasEnd && endFormatted !== 'Present') {
+    if (beginFormatted === endFormatted) {
+      return beginFormatted;
+    }
+    return `${beginFormatted} – ${endFormatted}`;
+  }
+
+  if (hasBegin) {
+    const resolvedEnd = hasEnd ? endFormatted : 'Present';
+    return `${beginFormatted} – ${resolvedEnd}`;
+  }
+
+  return hasEnd ? endFormatted : '';
+};
 
 const CvViewer: React.FC<CvViewerProps> = ({
   settings,
@@ -40,10 +169,19 @@ const CvViewer: React.FC<CvViewerProps> = ({
   workDetailMap,
   onNavigateToWork,
 }) => {
+  const [expandedEntries, setExpandedEntries] = useState<Record<string, boolean>>({});
+
   const handleWorkClick = (code: string) => {
     if (onNavigateToWork) {
       onNavigateToWork(code);
     }
+  };
+
+  const toggleEntry = (key: string) => {
+    setExpandedEntries((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
 
   return (
@@ -68,7 +206,7 @@ const CvViewer: React.FC<CvViewerProps> = ({
       </header>
 
       <div className="cv-experience">
-        {experienceGroups.map((group) => (
+        {experienceGroups.map((group, groupIndex) => (
           <section className="cv-experience-group" key={group.type}>
             <h3 className="cv-group-title">{group.type}</h3>
             <div className="cv-group-list">
@@ -77,6 +215,19 @@ const CvViewer: React.FC<CvViewerProps> = ({
                 const paragraphs = splitDescription(item.description);
                 const hasRelatedWorks =
                   item.relatedWorks && item.relatedWorks.length > 0;
+                const tags = Array.isArray(item.tags)
+                  ? item.tags.filter((tag) => Boolean(tag && tag.trim()))
+                  : [];
+                const entryKey = `${group.type}-${index}`;
+                const sanitizedGroupKey = group.type
+                  .replace(/\s+/g, '-')
+                  .replace(/[^a-zA-Z0-9-_]/g, '')
+                  .toLowerCase();
+                const entryId = `cv-entry-${sanitizedGroupKey || groupIndex}-${index}`;
+                const isExpandable = paragraphs.length > 0;
+                const isExpanded = isExpandable
+                  ? Boolean(expandedEntries[entryKey])
+                  : true;
 
                 return (
                   <article className="cv-entry" key={`${item.organisation}-${index}`}>
@@ -85,23 +236,39 @@ const CvViewer: React.FC<CvViewerProps> = ({
                         <h4 className="cv-entry-organisation">
                           {item.organisation}
                         </h4>
-                        {item.role && (
-                          <span className="cv-entry-role">{item.role}</span>
-                        )}
+                        <div className="cv-entry-role-line">
+                          {item.role && (
+                            <span className="cv-entry-role">{item.role}</span>
+                          )}
+                          {tags.length > 0 && (
+                            <div className="cv-entry-tags">
+                              {tags.map((tag) => (
+                                <span className="cv-tag-chip" key={tag}>
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {isExpandable && (
+                            <button
+                              type="button"
+                              className="cv-entry-toggle"
+                              onClick={() => toggleEntry(entryKey)}
+                              aria-expanded={isExpanded}
+                              aria-controls={`${entryId}-details`}
+                              aria-label={isExpanded ? '收合詳情' : '展開詳情'}
+                            >
+                              <span className="cv-entry-toggle-icon" aria-hidden="true">
+                                {isExpanded ? '▴' : '▾'}
+                              </span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                       {period && (
                         <span className="cv-entry-period">{period}</span>
                       )}
                     </header>
-                    {paragraphs.length > 0 && (
-                      <div className="cv-entry-description">
-                        <ul>
-                          {paragraphs.map((paragraph, paragraphIndex) => (
-                            <li key={paragraphIndex}>{paragraph}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                     {hasRelatedWorks && (
                       <div className="cv-entry-related">
                         <span className="cv-related-label">相關作品：</span>
@@ -123,6 +290,21 @@ const CvViewer: React.FC<CvViewerProps> = ({
                               </button>
                             );
                           })}
+                        </div>
+                      </div>
+                    )}
+                    {paragraphs.length > 0 && (
+                      <div
+                        className={`cv-entry-details${isExpanded ? ' is-expanded' : ''}`}
+                        id={`${entryId}-details`}
+                        aria-hidden={!isExpanded}
+                      >
+                        <div className="cv-entry-description">
+                          <ul>
+                            {paragraphs.map((paragraph, paragraphIndex) => (
+                              <li key={paragraphIndex}>{paragraph}</li>
+                            ))}
+                          </ul>
                         </div>
                       </div>
                     )}

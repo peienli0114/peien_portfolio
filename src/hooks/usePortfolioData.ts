@@ -20,15 +20,24 @@ import {
 
 const ROUTE_CONFIG = portfolioRoutes as PortfolioRouteConfig;
 const DEFAULT_ROUTE_ENTRY: PortfolioRouteEntry = ROUTE_CONFIG.default ?? {};
-const CV_CONTEXT = require.context('../asset/cv', false, /\.pdf$/);
-const CV_ASSETS: Record<string, string> = CV_CONTEXT.keys().reduce(
-  (acc, key) => {
-    const assetKey = key.replace('./', '');
-    acc[assetKey] = CV_CONTEXT(key) as string;
-    return acc;
-  },
-  {} as Record<string, string>,
-);
+const loadCvAssets = (): Record<string, string> => {
+  try {
+    const context = require.context('../asset/cv', false, /\.pdf$/);
+    return context.keys().reduce<Record<string, string>>((acc, key) => {
+      const assetKey = key.replace('./', '');
+      try {
+        acc[assetKey] = context(key) as string;
+      } catch {
+        // Skip missing assets so build continues even if files were removed.
+      }
+      return acc;
+    }, {});
+  } catch {
+    return {};
+  }
+};
+
+const CV_ASSETS = loadCvAssets();
 
 const workDetailMap = workDetails as Record<string, WorkDetail>;
 
