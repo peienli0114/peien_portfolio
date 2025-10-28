@@ -608,7 +608,10 @@ const Main: React.FC = () => {
           id="section-home"
           ref={homeSectionRef}
         >
-          <HomeSection />
+          <HomeSection
+            onNavigateCv={() => handleSelectContent('cv')}
+            onNavigatePortfolio={() => handlePortfolioNavClick()}
+          />
         </section>
         <section
           className="page-section"

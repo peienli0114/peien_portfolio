@@ -1,6 +1,14 @@
 import React from 'react';
 
-const HomeSection: React.FC = () => (
+type HomeSectionProps = {
+  onNavigateCv: () => void;
+  onNavigatePortfolio: () => void;
+};
+
+const HomeSection: React.FC<HomeSectionProps> = ({
+  onNavigateCv,
+  onNavigatePortfolio,
+}) => (
   <div className="content-wrapper home-section">
     <div className="home-greeting">
       <span>李佩恩作品集</span>
@@ -9,6 +17,18 @@ const HomeSection: React.FC = () => (
     {/* <p className="home-lead">
       網站仍在持續調整中，歡迎向下瀏覽履歷與作品，或使用左側目錄快速導覽。
     </p> */}
+    <div className="home-actions">
+      <button type="button" className="home-action-btn" onClick={onNavigateCv}>
+        快速前往 CV
+      </button>
+      <button
+        type="button"
+        className="home-action-btn is-accent"
+        onClick={onNavigatePortfolio}
+      >
+        快速前往作品集
+      </button>
+    </div>
     <div className="home-intro">
       <p>
         我是佩恩，擁有 <strong>3 年半的工業設計實務經驗</strong>，參與從設計研發到量產的完整流程。
