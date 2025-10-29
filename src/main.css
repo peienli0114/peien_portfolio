@@ -750,7 +750,11 @@
 }
 
 .portfolio-section {
-  padding: 2rem;
+  /* padding: 2rem; */
+  padding-top: 1.5rem;
+  padding-right: 1.5rem;
+  padding-bottom: 1.5rem;
+  padding-left: 1.5rem;
   border-radius: 1rem;
   background: var(--color-bg);
   border: 1px solid rgba(2, 175, 121, 0.08);
@@ -1107,15 +1111,15 @@
 .portfolio-preview {
   flex: 3 1 0;
   min-width: 360px;
-  min-height: 280px;
-  border-radius: 0.5rem;
-  background: linear-gradient(135deg, rgba(253, 146, 37, 0.12), rgba(68, 172, 175, 0.18));
+  /* min-height: 280px; */
+  /* border-radius: 0.5rem; */
+  /* background: linear-gradient(135deg, rgba(253, 146, 37, 0.12), rgba(68, 172, 175, 0.18)); */
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
-  border: 1px solid rgba(253, 146, 37, 0.25);
+  /* border: 1px solid rgba(253, 146, 37, 0.25); */
 }
 
 .portfolio-preview img {
@@ -1123,6 +1127,13 @@
   height: auto;
   object-fit: cover;
   background: #f2f6f6;
+  /* border-radius: 0.5rem; */
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+
+  /* border: 1px solid rgba(253, 146, 37, 0.25); */
 }
 
 .portfolio-preview-placeholder {
@@ -1460,6 +1471,10 @@
 }
 
 @media (max-width: 768px) {
+  /* .portfolio-preview img {
+    border-radius: 0.5rem;
+  } */
+
   .cv-entry-role-line {
     gap: 0.3rem;
   }
