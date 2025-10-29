@@ -104,11 +104,11 @@ const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
                             {detail.h2Name}
                           </span>
                         )}
-                        {yearText && (
+                        {/* {yearText && (
                           <span className="portfolio-overview-year">
                             {yearText}
                           </span>
-                        )}
+                        )} */}
                       </div>
                     </button>
                   );
