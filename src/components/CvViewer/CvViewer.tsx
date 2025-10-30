@@ -276,9 +276,9 @@ const CvViewer: React.FC<CvViewerProps> = ({
                           )}
                           {tags.length > 0 && (
                             <div className="cv-entry-tags">
-                              {tags.map((tag) => (
-                                <span className="cv-tag-chip" key={tag}>
-                                  {tag}
+                              {tags.map((tag, idx) => (
+                                <span className="cv-tag-chip" key={`${tag}-${idx}`}>
+                                  #{tag}
                                 </span>
                               ))}
                             </div>
