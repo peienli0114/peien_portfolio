@@ -31,7 +31,7 @@
       },
       {
         "name": "陳家興博士",
-        "work": "技術協助"
+        "work": "感測器與基礎地圖技術協助"
       },
       {
         "name": "李佩恩",
@@ -196,7 +196,12 @@
       "未來思考",
       "AI規劃應用"
     ],
-    "links": [],
+    "links": [
+      {
+        "name": "ISGC2025發表介紹",
+        "link": "https://indico4.twgrid.org/event/51/contributions/2671/"
+      }
+    ],
     "coWorkers": [
       {
         "name": "李佩恩",
