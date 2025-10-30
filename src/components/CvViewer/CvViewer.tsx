@@ -284,73 +284,8 @@ const CvViewer: React.FC<CvViewerProps> = ({
                             </div>
                           )}
                         </div>
-                      </div>
-                      {(period || isExpandable) && (
-                        <div className="cv-entry-header-meta">
-                          {period && (
-                            <span className="cv-entry-period">{period}</span>
-                          )}
-                          {isExpandable && (
-                            <button
-                              type="button"
-                              className="cv-entry-toggle"
-                              onClick={() => toggleEntry(entryKey)}
-                              aria-expanded={isExpanded}
-                              aria-controls={`${entryId}-details`}
-                              aria-label={isExpanded ? '收合詳情' : '展開詳情'}
-                            >
-                              <span className="cv-entry-toggle-icon" aria-hidden="true">
-                                {isExpanded ? '▴' : '▾'}
-                              </span>
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </header>
-                    {!isExpanded && hasRelatedWorks && (
-                      <div className="cv-entry-related">
-                        <span className="cv-related-label">相關作品：</span>
-                        <div className="cv-related-list">
-                          {item.relatedWorks.map((code) => {
-                            const detail = workDetailMap[code];
-                            const name =
-                              detail?.tableName ||
-                              detail?.fullName ||
-                              code.toUpperCase();
-                            return (
-                              <button
-                                key={code}
-                                type="button"
-                                className="cv-related-chip"
-                                onClick={() => handleWorkClick(code)}
-                              >
-                                {name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                    {(paragraphs.length > 0 || isExpandable) && (
-                      <div
-                        className={`cv-entry-details${isExpanded ? ' is-expanded' : ''}`}
-                        id={`${entryId}-details`}
-                        aria-hidden={!isExpanded}
-                      >
-                        <div className="cv-entry-details-body">
-                          {paragraphs.length > 0 && (
-                            <div className="cv-entry-description">
-                              <ul>
-                                {paragraphs.map((paragraph, paragraphIndex) => (
-                                  <li key={paragraphIndex}>{paragraph}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                        {hasRelatedWorks && (
-                          <div className="cv-entry-details-related">
-                            <span className="cv-related-label">相關作品：</span>
+                        {hasRelatedWorks && (!isExpandable || !isExpanded) && (
+                          <div className="cv-entry-related-inline">
                             <div className="cv-related-list">
                               {item.relatedWorks.map((code) => {
                                 const detail = workDetailMap[code];
@@ -370,6 +305,88 @@ const CvViewer: React.FC<CvViewerProps> = ({
                                 );
                               })}
                             </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="cv-entry-header-meta">
+                        {period && (
+                          <span className="cv-entry-period">{period}</span>
+                        )}
+                      </div>
+                      <div className="cv-entry-header-actions">
+                        {isExpandable && (
+                          <button
+                            type="button"
+                            className="cv-entry-toggle"
+                            onClick={() => toggleEntry(entryKey)}
+                            aria-expanded={isExpanded}
+                            aria-controls={`${entryId}-details`}
+                            aria-label={isExpanded ? '收合詳情' : '展開詳情'}
+                          >
+                            <span className="cv-entry-toggle-icon" aria-hidden="true">
+                              {isExpanded ? '▴' : '▾'}
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                    </header>
+                    {(paragraphs.length > 0 || isExpandable) && (
+                      <div
+                        className={`cv-entry-details${isExpanded ? ' is-expanded' : ''}`}
+                        id={`${entryId}-details`}
+                        aria-hidden={!isExpanded}
+                      >
+                        <div className="cv-entry-details-body">
+                          {paragraphs.length > 0 && (
+                            <div className="cv-entry-description">
+                              <ul>
+                                {paragraphs.map((paragraph, paragraphIndex) => (
+                                  <li key={paragraphIndex}>{paragraph}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                        {(hasRelatedWorks || isExpandable) && (
+                          <div className="cv-entry-details-related">
+                            {hasRelatedWorks && (
+                              <div className="cv-related-body">
+                                <span className="cv-related-label">相關作品：</span>
+                                <div className="cv-related-list">
+                              {item.relatedWorks.map((code) => {
+                                const detail = workDetailMap[code];
+                                const name =
+                                  detail?.tableName ||
+                                  detail?.fullName ||
+                                  code.toUpperCase();
+                                return (
+                                  <button
+                                    key={code}
+                                    type="button"
+                                    className="cv-related-chip"
+                                    onClick={() => handleWorkClick(code)}
+                                  >
+                                    {name}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                        {isExpandable && (
+                          <button
+                            type="button"
+                            className="cv-entry-toggle is-inline"
+                            onClick={() => toggleEntry(entryKey)}
+                            aria-expanded={isExpanded}
+                            aria-controls={`${entryId}-details`}
+                            aria-label={isExpanded ? '收合詳情' : '展開詳情'}
+                          >
+                            <span className="cv-entry-toggle-icon" aria-hidden="true">
+                              {isExpanded ? '▴' : '▾'}
+                            </span>
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
