@@ -202,40 +202,76 @@ const CvViewer: React.FC<CvViewerProps> = ({
     }));
   };
 
+  const isMobileViewport = () =>
+    typeof window !== 'undefined' &&
+    window.matchMedia('(max-width: 768px)').matches;
+
+  const handleEntryClick = (
+    event: React.MouseEvent<HTMLElement>,
+    key: string,
+    isExpandableEntry: boolean,
+  ) => {
+    if (!isExpandableEntry) {
+      return;
+    }
+    if (isMobileViewport()) {
+      return;
+    }
+    const target = event.target as HTMLElement | null;
+    if (target && target.closest('button, a')) {
+      return;
+    }
+    toggleEntry(key);
+  };
+
+  const handleEntryKeyDown = (
+    event: React.KeyboardEvent<HTMLElement>,
+    key: string,
+    isExpandableEntry: boolean,
+  ) => {
+    if (!isExpandableEntry) {
+      return;
+    }
+    if (event.target instanceof HTMLElement && event.target.closest('button, a')) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleEntry(key);
+    }
+  };
+
   return (
     <section className="cv-section">
       <header className="cv-header">
         <div className="cv-header-info">
           <h2 className="cv-title">CV</h2>
-          <p className="cv-subtitle">
-            {/* 精選教育、專案與工作經歷，展示跨領域設計研究與數據分析的成果。 */}
-          </p>
           {settings.link && (
             <a
+              className="cv-online-link"
               href={settings.link}
               target="_blank"
-              rel="noopener noreferrer"
-              className="cv-online-link"
+              rel="noreferrer"
             >
-              下載完整履歷（Google Drive）
+              完整履歷連結(Google Drive)
             </a>
           )}
-          {CONTACT_LINKS.length > 0 && (
-            <div className="cv-contact">
-              {CONTACT_LINKS.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="cv-contact-item"
-                  target={item.href.startsWith('http') ? '_blank' : undefined}
-                  rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                >
-                  <span className="cv-contact-label">{item.label}</span>
-                  <span className="cv-contact-value">{item.value}</span>
-                </a>
-              ))}
-            </div>
-          )}
+          <div className="cv-contact">
+            {CONTACT_LINKS.map(({ label, value, href }) => (
+              <a
+                key={label}
+                className="cv-contact-item"
+                href={href}
+                target={href.startsWith('http') ? '_blank' : undefined}
+                rel={href.startsWith('http') ? 'noreferrer' : undefined}
+              >
+                <span className="cv-contact-label">{label}</span>
+                {value ? (
+                  <span className="cv-contact-value">{value}</span>
+                ) : null}
+              </a>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -248,7 +284,7 @@ const CvViewer: React.FC<CvViewerProps> = ({
                 const period = formatRange(item.begin, item.end);
                 const paragraphs = splitDescription(item.description);
                 const hasRelatedWorks =
-                  item.relatedWorks && item.relatedWorks.length > 0;
+                  Array.isArray(item.relatedWorks) && item.relatedWorks.length > 0;
                 const tags = Array.isArray(item.tags)
                   ? item.tags.filter((tag) => Boolean(tag && tag.trim()))
                   : [];
@@ -264,12 +300,18 @@ const CvViewer: React.FC<CvViewerProps> = ({
                   : true;
 
                 return (
-                  <article className="cv-entry" key={`${item.organisation}-${index}`}>
+                  <article
+                    key={`${item.organisation}-${index}`}
+                    className={`cv-entry${isExpandable ? ' is-expandable' : ''}`}
+                    onClick={(event) => handleEntryClick(event, entryKey, isExpandable)}
+                    onKeyDown={(event) => handleEntryKeyDown(event, entryKey, isExpandable)}
+                    role={isExpandable ? 'button' : undefined}
+                    tabIndex={isExpandable ? 0 : undefined}
+                    aria-expanded={isExpandable ? isExpanded : undefined}
+                  >
                     <header className="cv-entry-header">
                       <div className="cv-entry-heading">
-                        <h4 className="cv-entry-organisation">
-                          {item.organisation}
-                        </h4>
+                        <h4 className="cv-entry-organisation">{item.organisation}</h4>
                         <div className="cv-entry-role-line">
                           {item.role && (
                             <span className="cv-entry-role">{item.role}</span>
@@ -284,7 +326,7 @@ const CvViewer: React.FC<CvViewerProps> = ({
                             </div>
                           )}
                         </div>
-                        {hasRelatedWorks && (!isExpandable || !isExpanded) && (
+                        {hasRelatedWorks && (
                           <div className="cv-entry-related-inline">
                             <div className="cv-related-list">
                               {item.relatedWorks.map((code) => {
@@ -308,17 +350,18 @@ const CvViewer: React.FC<CvViewerProps> = ({
                           </div>
                         )}
                       </div>
-                      <div className="cv-entry-header-meta">
-                        {period && (
-                          <span className="cv-entry-period">{period}</span>
-                        )}
+                      <div className="cv-entry-period-block">
+                        {period && <span className="cv-entry-period">{period}</span>}
                       </div>
                       <div className="cv-entry-header-actions">
-                        {isExpandable && (
+                        {isExpandable ? (
                           <button
                             type="button"
                             className="cv-entry-toggle"
-                            onClick={() => toggleEntry(entryKey)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleEntry(entryKey);
+                            }}
                             aria-expanded={isExpanded}
                             aria-controls={`${entryId}-details`}
                             aria-label={isExpanded ? '收合詳情' : '展開詳情'}
@@ -327,68 +370,26 @@ const CvViewer: React.FC<CvViewerProps> = ({
                               {isExpanded ? '▴' : '▾'}
                             </span>
                           </button>
+                        ) : (
+                          <span className="cv-entry-toggle-spacer" aria-hidden="true" />
                         )}
                       </div>
                     </header>
-                    {(paragraphs.length > 0 || isExpandable) && (
+                    {isExpandable && (
                       <div
                         className={`cv-entry-details${isExpanded ? ' is-expanded' : ''}`}
                         id={`${entryId}-details`}
                         aria-hidden={!isExpanded}
                       >
                         <div className="cv-entry-details-body">
-                          {paragraphs.length > 0 && (
-                            <div className="cv-entry-description">
-                              <ul>
-                                {paragraphs.map((paragraph, paragraphIndex) => (
-                                  <li key={paragraphIndex}>{paragraph}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                          <div className="cv-entry-description">
+                            <ul>
+                              {paragraphs.map((paragraph, paragraphIndex) => (
+                                <li key={paragraphIndex}>{paragraph}</li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
-                        {(hasRelatedWorks || isExpandable) && (
-                          <div className="cv-entry-details-related">
-                            {hasRelatedWorks && (
-                              <div className="cv-related-body">
-                                <span className="cv-related-label">相關作品：</span>
-                                <div className="cv-related-list">
-                              {item.relatedWorks.map((code) => {
-                                const detail = workDetailMap[code];
-                                const name =
-                                  detail?.tableName ||
-                                  detail?.fullName ||
-                                  code.toUpperCase();
-                                return (
-                                  <button
-                                    key={code}
-                                    type="button"
-                                    className="cv-related-chip"
-                                    onClick={() => handleWorkClick(code)}
-                                  >
-                                    {name}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                        {isExpandable && (
-                          <button
-                            type="button"
-                            className="cv-entry-toggle is-inline"
-                            onClick={() => toggleEntry(entryKey)}
-                            aria-expanded={isExpanded}
-                            aria-controls={`${entryId}-details`}
-                            aria-label={isExpanded ? '收合詳情' : '展開詳情'}
-                          >
-                            <span className="cv-entry-toggle-icon" aria-hidden="true">
-                              {isExpanded ? '▴' : '▾'}
-                            </span>
-                              </button>
-                            )}
-                          </div>
-                        )}
                       </div>
                     )}
                   </article>
